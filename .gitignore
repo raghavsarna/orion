@@ -1,11 +1,15 @@
+# build output
 target/
+frontend/node_modules/
+frontend/dist/
 *.class
 *.log
+
+# editors / OS
 .idea/
 *.iml
 .vscode/
 .DS_Store
+
+# secrets
 .env
-ui/node_modules/
-ui/dist/
-__pycache__/

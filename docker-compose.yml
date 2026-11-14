@@ -28,11 +28,11 @@ services:
       retries: 20
     restart: unless-stopped
 
-  controller:
+  sdn-controller:
     build:
-      context: .
+      context: ./backend
       args:
-        MODULE: controller
+        MODULE: sdn-controller
     environment:
       <<: *common-env
       CONTROLLER_PORT: 8181
@@ -53,13 +53,13 @@ services:
 
   switch-network:
     build:
-      context: .
+      context: ./backend
       args:
         MODULE: switch-network
     environment:
       <<: *common-env
       NETWORK_PORT: 9191
-      CONTROLLER_URL: http://controller:8181
+      CONTROLLER_URL: http://sdn-controller:8181
       NETWORK_PUBLIC_URL: http://switch-network:9191
       TOPOLOGY_FILE: /config/topology.yaml
     volumes:
@@ -67,18 +67,33 @@ services:
     ports:
       - "${NETWORK_PORT:-9191}:9191"
     depends_on:
-      - controller
+      - sdn-controller
     restart: unless-stopped
 
-  ui:
+  frontend:
     build:
-      context: ./ui
+      context: ./frontend
     ports:
       - "${UI_PORT:-3000}:80"
     depends_on:
-      - controller
+      - sdn-controller
       - switch-network
     restart: unless-stopped
 
+  # End-to-end check (only with --profile test):  docker compose --profile test run --rm system-test
+  system-test:
+    profiles: ["test"]
+    image: maven:3.9.11-eclipse-temurin-21
+    working_dir: /src
+    volumes:
+      - ./backend:/src
+      - orion-m2:/root/.m2
+    environment:
+      CTRL: http://sdn-controller:8181
+      NET: http://switch-network:9191
+      NET_FROM_CONTROLLER: http://switch-network:9191
+    command: ["mvn", "-B", "-ntp", "-q", "-pl", "system-test", "test", "-Dorion.systemTest=true", "-Dsurefire.printSummary=false"]
+
 volumes:
   orion-db:
+  orion-m2:

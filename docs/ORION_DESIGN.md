@@ -467,16 +467,12 @@ sequenceDiagram
 ## 10. Config and code layout
 
 ```
-orion/
-├── config/   topology.yaml, application.yml, llm.yaml
-├── switch-network/
-│   ├── api/        SwitchApi, NetworkApi                 (Spring)
-│   └── core/       SwitchNetwork, Switch, FlowTable, ControllerConnection, TrafficGenerator
-└── controller/
-    ├── api/        SouthboundApi, NorthboundApi          (Spring)
-    ├── topology/   TopologyManager, TopologyGraph
-    ├── intent/     IntentManager, RuleGenerator, Dijkstra, LlmTranslator
-    └── db/         Database, IntentRepository, GroupRepository
+backend/
+├── shared/            packet, flow rule, switch↔controller messages
+├── switch-network/    network/, processing/, communication/
+├── sdn-controller/    communication/ (southbound, northbound), topology/, intent/, flowrules/, storage/
+└── system-test/       end-to-end check
+frontend/src/          topology/, sidebar/
 ```
 
 `llm.yaml`:

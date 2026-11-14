@@ -58,26 +58,44 @@ docker compose restart switch-network
 
 ## Check everything works
 
+With the system running:
+
 ```bash
-python scripts/demo.py
+docker compose --profile test run --rm system-test
 ```
 
-The script runs 26 end-to-end checks against the running system: baseline routing, latency, blocking, website
-time windows, rate limiting, avoiding a link, link failure and repair, manual switch add, dead-switch removal,
-and a dead-but-kept switch. Unit tests: `mvn test` (needs JDK 21+ and Maven locally).
+This runs 26 end-to-end checks (a Java test in `backend/system-test`) against the running system: baseline routing,
+latency, blocking, website time windows, rate limiting, avoiding a link, link failure and repair, manual switch add,
+dead-switch removal, and a dead-but-kept switch. Only Docker is needed.
+
+Unit tests (needs JDK 21+ and Maven locally): `cd backend && mvn test`.
 
 ## Project layout
 
 ```
-config/            topology.yaml, llm.yaml, prompts/   (mounted into the containers)
-common/            plain-Java shared models: packet, flow rule, match, southbound messages
-switch-network/    SwitchNetwork, Switch (thread), FlowTable, ControllerConnection, TrafficGenerator
-controller/        OrionCore wires: Nib + TopologyManager, IntentManager + RuleGenerator + FlowPusher,
-                   PacketInHandler, LlmTranslator, plain-JDBC repositories
-ui/                React (Vite), served by nginx, which also proxies /ctrl and /net
-scripts/demo.py    end-to-end checks
-docs/              design and implementation plan
+ICE/
+├── docker-compose.yml        runs everything
+├── config/                   topology.yaml, llm.yaml, prompts/ (mounted into the containers)
+├── docs/                     design + implementation plan
+├── backend/                  Java 21, Maven (one build for all modules)
+│   ├── shared/               com.orion.shared: packet, flow rule, switch↔controller messages, IP helpers
+│   ├── switch-network/       com.orion.switchnetwork
+│   │   ├── network/          topology file, SwitchNetwork, links, runtime add/drop
+│   │   ├── processing/       Switch thread, FlowTable, token bucket, packet log, traffic generator
+│   │   └── communication/    ControllerConnection + REST endpoints
+│   ├── sdn-controller/       com.orion.controller (OrionCore wires everything)
+│   │   ├── communication/    southbound/ (switches) and northbound/ (user, UI)
+│   │   ├── topology/         NIB: adjacency matrix, registration, probing, dead switches, pub/sub
+│   │   ├── intent/           intents, validation, Hindi → intent (LLM)
+│   │   ├── flowrules/        intent → flow rules (Dijkstra, priorities), safe pushing, packet-in
+│   │   └── storage/          PostgreSQL repositories
+│   └── system-test/          end-to-end check
+└── frontend/                 React (Vite), served by nginx (which proxies /ctrl and /net)
+    └── src/
+        ├── topology/         network drawing, adjacency matrix, add-switch / add-link dialogs
+        └── sidebar/          switch, link, intents, groups, packet log, activity
 ```
 
-Spring is used only for the REST endpoints (`api` packages); all logic is plain Java.
+Spring is used only for the REST endpoints (in the `communication` packages, plus the two bootstrap classes);
+all logic is plain Java.
 See [docs/ORION_DESIGN.md](docs/ORION_DESIGN.md) for the design.
