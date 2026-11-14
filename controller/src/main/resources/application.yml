@@ -1,0 +1,21 @@
+server:
+  port: ${CONTROLLER_PORT:8181}
+
+spring:
+  application:
+    name: controller
+
+orion:
+  # must match controller.authToken in topology.yaml
+  auth-token: ${ORION_AUTH_TOKEN:orion-secret-token}
+  # controller -> switch probe interval, and misses in a row before a switch is DEAD
+  probe-interval-sec: ${PROBE_INTERVAL_SEC:3}
+  max-missed-probes: ${MAX_MISSED_PROBES:3}
+  # periodic safety check: re-read topology and switch rules, fix any difference
+  safety-check-sec: ${SAFETY_CHECK_SEC:30}
+  db:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/orion}
+    user: ${DB_USER:orion}
+    password: ${DB_PASSWORD:orion}
+  llm-config: ${LLM_CONFIG:config/llm.yaml}
+  timezone: ${ORION_TIMEZONE:Asia/Kolkata}

@@ -1,0 +1,18 @@
+server:
+  port: ${NETWORK_PORT:9191}
+
+spring:
+  application:
+    name: switch-network
+
+orion:
+  # path to the topology file (docker-compose sets /config/topology.yaml)
+  topology-file: ${TOPOLOGY_FILE:config/topology.yaml}
+  # if set, replaces controller.url from the topology file
+  controller-url: ${CONTROLLER_URL:}
+  # how the controller reaches this container (switch address = public-url + /switch/{id})
+  public-url: ${NETWORK_PUBLIC_URL:http://localhost:9191}
+  # how often each switch probes the controller
+  heartbeat-sec: ${HEARTBEAT_SEC:3}
+  # time zone for rule time windows
+  timezone: ${ORION_TIMEZONE:Asia/Kolkata}

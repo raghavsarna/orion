@@ -1,0 +1,84 @@
+name: orion
+
+# Start the whole system:   docker compose up --build
+# Open the UI:              http://localhost:3000
+# Stop it:                  docker compose down
+#
+# Host ports can be changed with env vars, e.g.  UI_PORT=3100 docker compose up --build
+# To use Hindi/natural-language intents, set ORION_LLM_API_KEY (see config/llm.yaml) before starting.
+
+x-common-env: &common-env
+  ORION_TIMEZONE: ${ORION_TIMEZONE:-Asia/Kolkata}
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: orion
+      POSTGRES_USER: orion
+      POSTGRES_PASSWORD: orion
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - orion-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orion -d orion"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  controller:
+    build:
+      context: .
+      args:
+        MODULE: controller
+    environment:
+      <<: *common-env
+      CONTROLLER_PORT: 8181
+      DB_URL: jdbc:postgresql://postgres:5432/orion
+      DB_USER: orion
+      DB_PASSWORD: orion
+      ORION_AUTH_TOKEN: orion-secret-token
+      LLM_CONFIG: /config/llm.yaml
+      ORION_LLM_API_KEY: ${ORION_LLM_API_KEY:-}
+    volumes:
+      - ./config:/config:ro
+    ports:
+      - "${CONTROLLER_PORT:-8181}:8181"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  switch-network:
+    build:
+      context: .
+      args:
+        MODULE: switch-network
+    environment:
+      <<: *common-env
+      NETWORK_PORT: 9191
+      CONTROLLER_URL: http://controller:8181
+      NETWORK_PUBLIC_URL: http://switch-network:9191
+      TOPOLOGY_FILE: /config/topology.yaml
+    volumes:
+      - ./config:/config:ro
+    ports:
+      - "${NETWORK_PORT:-9191}:9191"
+    depends_on:
+      - controller
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: ./ui
+    ports:
+      - "${UI_PORT:-3000}:80"
+    depends_on:
+      - controller
+      - switch-network
+    restart: unless-stopped
+
+volumes:
+  orion-db:
