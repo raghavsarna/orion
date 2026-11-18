@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { clearSaved, H, layout, loadSaved, storeSaved, W } from './layout.js'
 
 // sized for a projector: the figure is cropped to its content, so these render close to 1:1 at 1440 px
-const BW = 96
+const BW = 122
 const BH = 58
 const HOST = 98
 
@@ -114,7 +114,7 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
           const my = (a.y + b.y) / 2
           // counts sit off the midpoint (where crossing links meet) and clear of the labels under middle-tier switches
           const [hi, lo, hiId] = a.y <= b.y ? [a, b, l.a.split(':')[0]] : [b, a, l.b.split(':')[0]]
-          const f = tierOf(hiId) === 'mid' ? 0.64 : 0.38
+          const f = tierOf(hiId) === 'mid' ? 0.58 : 0.45
           const cx = hi.x + (lo.x - hi.x) * f
           const cy = hi.y + (lo.y - hi.y) * f
           return (
@@ -182,11 +182,11 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect({ kind: 'switch', id: s.id })}>
               {focusSw.has(s.id) && <rect className="ring" x={-BW / 2 - 8} y={-BH / 2 - 8} width={BW + 16} height={BH + 16} />}
               <rect className="box" x={-BW / 2} y={-BH / 2} width={BW} height={BH} />
-              <text className="sid" textAnchor="middle" y={-4}>{s.id}</text>
+              <text className="sid" textAnchor="middle" y={-6}>{s.id}</text>
               {/* second line inside the box: the switch's state when it matters, otherwise its name */}
-              {state === 'unknown' ? <text className="sub bad" textAnchor="middle" y={19}>unknown</text>
-                : state === 'absent' ? <text className="sub" textAnchor="middle" y={19}>not in NIB</text>
-                  : !s.controlConnected ? <text className="sub" textAnchor="middle" y={19}>control cut</text>
+              {state === 'unknown' ? <StateWord k={k} bad>unknown</StateWord>
+                : state === 'absent' ? <StateWord k={k}>not in NIB</StateWord>
+                  : !s.controlConnected ? <StateWord k={k}>control cut</StateWord>
                     : <text className="sname" textAnchor="middle" y={19}>{s.name}</text>}
               {drops > 0 && (
                 <g className="drops" transform={`translate(${BW / 2 + 8},${-BH / 2})`}>
@@ -202,5 +202,17 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
         <button className="link-btn reset-layout" onClick={resetLayout}>Reset layout</button>
       )}
     </div>
+  )
+}
+
+/** The switch's state inside its box, as large as the traffic counts; squeezed to the box width if it would overflow. */
+function StateWord({ k, bad, children }) {
+  const size = 17 * k
+  const tooWide = children.length * size * 0.56 > BW - 10
+  return (
+    <text className={'sub' + (bad ? ' bad' : '')} textAnchor="middle" y={13 + 6 * k} style={{ fontSize: size }}
+          {...(tooWide ? { textLength: BW - 10, lengthAdjust: 'spacingAndGlyphs' } : {})}>
+      {children}
+    </text>
   )
 }
