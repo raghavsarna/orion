@@ -1,0 +1,416 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-18T11:46:59.076918+00:00",
+  "title": "Design System: Orion-Lite",
+  "extensions": {
+    "colorMeta": {
+      "ink-blue": {
+        "role": "primary",
+        "displayName": "Ink Blue",
+        "tonalRamp": [
+          "#0b2443",
+          "#123662",
+          "#174a85",
+          "#1f5fa8",
+          "#4b7fc0",
+          "#7fa4d3",
+          "#b8cbe4",
+          "#e9f1fb"
+        ]
+      },
+      "ink-blue-deep": {
+        "role": "primary",
+        "displayName": "Deep Ink Blue",
+        "tonalRamp": [
+          "#0b2443",
+          "#123662",
+          "#174a85",
+          "#1f5fa8",
+          "#4b7fc0",
+          "#7fa4d3",
+          "#b8cbe4",
+          "#e9f1fb"
+        ]
+      },
+      "ink-blue-wash": {
+        "role": "primary",
+        "displayName": "Blue Wash",
+        "tonalRamp": [
+          "#0b2443",
+          "#123662",
+          "#174a85",
+          "#1f5fa8",
+          "#4b7fc0",
+          "#7fa4d3",
+          "#b8cbe4",
+          "#e9f1fb"
+        ]
+      },
+      "ink-blue-pale": {
+        "role": "primary",
+        "displayName": "Pale Blue",
+        "tonalRamp": [
+          "#0b2443",
+          "#123662",
+          "#174a85",
+          "#1f5fa8",
+          "#4b7fc0",
+          "#7fa4d3",
+          "#b8cbe4",
+          "#e9f1fb"
+        ]
+      },
+      "failure-red": {
+        "role": "secondary",
+        "displayName": "Failure Red",
+        "tonalRamp": [
+          "#3d0d0a",
+          "#5e1510",
+          "#851c16",
+          "#b3261e",
+          "#cf5a52",
+          "#e39089",
+          "#f2c4c0",
+          "#fbecea"
+        ]
+      },
+      "failure-red-wash": {
+        "role": "secondary",
+        "displayName": "Red Wash",
+        "tonalRamp": [
+          "#3d0d0a",
+          "#5e1510",
+          "#851c16",
+          "#b3261e",
+          "#cf5a52",
+          "#e39089",
+          "#f2c4c0",
+          "#fbecea"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "tonalRamp": [
+          "#111111",
+          "#2c2c2c",
+          "#474747",
+          "#6a6a6a",
+          "#9a9a9a",
+          "#d4d4d4",
+          "#ececec",
+          "#f4f4f4"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "#111111",
+          "#2c2c2c",
+          "#474747",
+          "#6a6a6a",
+          "#9a9a9a",
+          "#d4d4d4",
+          "#ececec",
+          "#f4f4f4"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "tonalRamp": [
+          "#111111",
+          "#2c2c2c",
+          "#474747",
+          "#6a6a6a",
+          "#9a9a9a",
+          "#d4d4d4",
+          "#ececec",
+          "#f4f4f4"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "tonalRamp": [
+          "#111111",
+          "#2c2c2c",
+          "#474747",
+          "#6a6a6a",
+          "#9a9a9a",
+          "#d4d4d4",
+          "#ececec",
+          "#f4f4f4"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "tonalRamp": [
+          "#111111",
+          "#2c2c2c",
+          "#474747",
+          "#6a6a6a",
+          "#9a9a9a",
+          "#d4d4d4",
+          "#ececec",
+          "#f4f4f4"
+        ]
+      },
+      "rule-soft": {
+        "role": "neutral",
+        "displayName": "Soft Rule",
+        "tonalRamp": [
+          "#111111",
+          "#2c2c2c",
+          "#474747",
+          "#6a6a6a",
+          "#9a9a9a",
+          "#d4d4d4",
+          "#ececec",
+          "#f4f4f4"
+        ]
+      },
+      "fill": {
+        "role": "neutral",
+        "displayName": "Fill",
+        "tonalRamp": [
+          "#111111",
+          "#2c2c2c",
+          "#474747",
+          "#6a6a6a",
+          "#9a9a9a",
+          "#d4d4d4",
+          "#ececec",
+          "#f4f4f4"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "\"Orion-Lite\" in the running head."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Walkthrough titles in the side pane, preceded by the italic section number."
+      },
+      "guide": {
+        "displayName": "Guide words",
+        "purpose": "Italic serif in the running head naming the current paper section."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Figure and table captions, 'Figure N:' in 600, max 75ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Step text and running copy, tabular numerals."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, tabs, segmented controls."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Table cells, matrix, bar rows, figure key."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-ink",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one ease-out curve for caption flashes, result settles, toasts and flow-width changes."
+      },
+      {
+        "name": "caption-ink",
+        "value": "2.6s ease-ink, background Blue Wash to transparent",
+        "purpose": "Highlights the caption phrase the controller just rewrote."
+      },
+      {
+        "name": "settle",
+        "value": "420ms ease-ink, opacity 0 and blur(3px) to none (300ms for toasts)",
+        "purpose": "A measured result or toast arriving."
+      },
+      {
+        "name": "flow-width",
+        "value": "400ms ease-ink on stroke-width",
+        "purpose": "Traffic strokes thickening or thinning on links."
+      },
+      {
+        "name": "state-colour",
+        "value": "200ms ease-out on stroke and fill; 150ms ease-out on button background",
+        "purpose": "Figure mark and control state changes."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "all animation and transition durations 1ms",
+        "purpose": "prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-mobile",
+        "value": "640px"
+      },
+      {
+        "name": "stacked",
+        "value": "900px"
+      },
+      {
+        "name": "tight-tabs",
+        "value": "1280px"
+      },
+      {
+        "name": "large-root",
+        "value": "1600px"
+      }
+    ],
+    "figureScale": {
+      "variable": "--k",
+      "value": "min(1.45, max(1, 1 / renderScale))",
+      "purpose": "Projector compensation: figure label sizes are calc(Npx * var(--k, 1)); switch IDs cap at 1.2, sub-labels at 1.25."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink Blue fill; the one main action in view, such as Run.",
+      "html": "<button class=\"ds-btn ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"6 3 20 12 6 21 6 3\"/></svg> Run</button>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-btn{appearance:none;display:inline-flex;align-items:center;gap:0.45em;font:600 17px/1 var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--ink);border-radius:3px;padding:0.6em 0.95em;cursor:pointer;transition:background 150ms ease-out,color 150ms ease-out;}.ds-btn:hover{background:var(--fill);}.ds-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}.ds-btn-primary{background:var(--blue);border-color:var(--blue);color:#fff;}.ds-btn-primary:hover{background:var(--blue-ink);}"
+    },
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Default control: 1px ink outline on paper.",
+      "html": "<button class=\"ds-btn\">Add intent</button>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-btn{appearance:none;display:inline-flex;align-items:center;gap:0.45em;font:600 17px/1 var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--ink);border-radius:3px;padding:0.6em 0.95em;cursor:pointer;transition:background 150ms ease-out,color 150ms ease-out;}.ds-btn:hover{background:var(--fill);}.ds-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Borderless navigation and restore actions.",
+      "html": "<button class=\"ds-btn ds-btn-quiet\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12 19-7-7 7-7\"/><path d=\"M19 12H5\"/></svg> All walkthroughs</button>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-btn{appearance:none;display:inline-flex;align-items:center;gap:0.45em;font:600 17px/1 var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--ink);border-radius:3px;padding:0.6em 0.95em;cursor:pointer;transition:background 150ms ease-out,color 150ms ease-out;}.ds-btn:hover{background:var(--fill);}.ds-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}.ds-btn-quiet{border-color:transparent;color:var(--ink-2);padding-left:0.4em;padding-right:0.4em;}.ds-btn-quiet:hover{color:var(--ink);background:var(--fill);}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive actions; red outline, Red Wash hover.",
+      "html": "<button class=\"ds-btn ds-btn-danger\">Cut link</button>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-btn{appearance:none;display:inline-flex;align-items:center;gap:0.45em;font:600 17px/1 var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--ink);border-radius:3px;padding:0.6em 0.95em;cursor:pointer;transition:background 150ms ease-out,color 150ms ease-out;}.ds-btn:hover{background:var(--fill);}.ds-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}.ds-btn-danger{color:var(--red);border-color:var(--red);}.ds-btn-danger:hover{background:var(--red-wash);}"
+    },
+    {
+      "name": "Tabs",
+      "kind": "nav",
+      "refersTo": "tab",
+      "description": "Side-pane tabs; active tab carries a 3px ink underline.",
+      "html": "<nav class=\"ds-tabs\"><button class=\"on\">Walkthrough</button><button>Intents</button><button>Inspect</button><button>Measure</button><button>Log</button></nav>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-tabs{display:flex;border-bottom:1px solid var(--rule);padding:0 0.8rem;}.ds-tabs button{appearance:none;border:0;background:none;cursor:pointer;font:600 17px var(--sans);color:var(--ink-3);padding:0.85rem 0.7rem 0.7rem;border-bottom:3px solid transparent;margin-bottom:-1px;}.ds-tabs button:hover{color:var(--ink);}.ds-tabs button:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}.ds-tabs button.on{color:var(--ink);border-bottom-color:var(--ink);}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented-on",
+      "description": "Outlined group; selected segment inverts to ink.",
+      "html": "<div class=\"ds-seg\"><button class=\"on\">Fail Static</button><button>Fail Closed</button></div>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-seg{display:flex;border:1px solid var(--ink);border-radius:3px;width:fit-content;overflow:hidden;}.ds-seg button{appearance:none;border:0;background:var(--paper);cursor:pointer;font:600 16px var(--sans);color:var(--ink-2);padding:0.5em 0.8em;}.ds-seg button+button{border-left:1px solid var(--rule);}.ds-seg button:hover{color:var(--ink);}.ds-seg button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;}.ds-seg button.on{background:var(--ink);color:#fff;}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Label above, grey border, blue focus with Blue Wash halo.",
+      "html": "<label class=\"ds-label\">Max latency (ms)<input class=\"ds-input\" placeholder=\"20\"></label>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-label{display:flex;flex-direction:column;gap:0.25rem;font:600 15px var(--sans);color:var(--ink-2);}.ds-input{font:400 17px var(--sans);color:var(--ink);background:var(--paper);border:1px solid #b5b5b5;border-radius:3px;padding:0.45em 0.55em;}.ds-input:focus{border-color:var(--blue);outline:2px solid var(--blue-wash);outline-offset:0;}"
+    },
+    {
+      "name": "Booktabs Table",
+      "kind": "card",
+      "description": "Paper table: 2px ink bounds, caption above in serif.",
+      "html": "<table class=\"ds-table\"><caption><b>Table 1:</b> Link failure under a steady flow.</caption><thead><tr><th>Trial</th><th class=\"n\">Detection ms</th><th class=\"n\">Outage ms</th></tr></thead><tbody><tr><td>1</td><td class=\"n\">19</td><td class=\"n\">245</td></tr><tr><td>2</td><td class=\"n\">21</td><td class=\"n\">255</td></tr><tr class=\"med\"><td>median</td><td class=\"n\">20</td><td class=\"n\">250</td></tr></tbody></table>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-table{border-collapse:collapse;width:100%;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);font:400 16px var(--sans);font-variant-numeric:tabular-nums;color:var(--ink);}.ds-table caption{caption-side:top;text-align:left;font:17px/1.45 var(--serif);color:var(--ink-2);padding-bottom:0.5rem;}.ds-table caption b{color:var(--ink);font-weight:600;}.ds-table th{text-align:left;font-weight:700;padding:0.45em 0.5em;border-bottom:1px solid var(--ink);}.ds-table td{padding:0.45em 0.5em;border-top:1px solid var(--rule-soft);}.ds-table tr:first-child td{border-top:0;}.ds-table .med td{border-top:1px solid var(--ink);font-weight:700;}.ds-table .n{text-align:right;}"
+    },
+    {
+      "name": "Figure Marks",
+      "kind": "custom",
+      "refersTo": "switch-box",
+      "description": "Square switch boxes and link line styles: healthy, unknown, down, flow.",
+      "html": "<svg class=\"ds-fig\" width=\"360\" height=\"90\" viewBox=\"0 0 360 90\"><rect class=\"box\" x=\"10\" y=\"25\" width=\"70\" height=\"40\"/><text x=\"45\" y=\"51\">s1</text><rect class=\"box unknown\" x=\"280\" y=\"25\" width=\"70\" height=\"40\"/><text x=\"315\" y=\"51\">s4</text><line class=\"wire\" x1=\"80\" y1=\"30\" x2=\"280\" y2=\"30\"/><line class=\"flow\" x1=\"80\" y1=\"45\" x2=\"280\" y2=\"45\"/><line class=\"wire down\" x1=\"80\" y1=\"60\" x2=\"280\" y2=\"60\"/><path class=\"cross\" d=\"M174 54l12 12M186 54l-12 12\"/></svg>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-fig .box{fill:var(--paper);stroke:var(--ink);stroke-width:2;}.ds-fig .box.unknown{stroke:var(--red);stroke-dasharray:7 5;fill:var(--fill);}.ds-fig text{font:700 18px var(--sans);fill:var(--ink);text-anchor:middle;}.ds-fig .wire{stroke:var(--ink);stroke-width:1.4;}.ds-fig .wire.down{stroke:var(--red);stroke-width:2;stroke-dasharray:9 6;}.ds-fig .cross{stroke:var(--red);stroke-width:3;stroke-linecap:round;fill:none;}.ds-fig .flow{stroke:var(--blue);stroke-width:5;stroke-linecap:round;opacity:0.85;}"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "The only floating element; held off the page by a 1px ink border, no shadow.",
+      "html": "<p class=\"ds-toast\">Intent 3 installed on 4 switches.</p><p class=\"ds-toast err\">Controller unreachable.</p>",
+      "css": ":host{--paper:#ffffff;--ink:#111111;--ink-2:#474747;--ink-3:#6a6a6a;--rule:#d4d4d4;--rule-soft:#ececec;--fill:#f4f4f4;--blue:#1f5fa8;--blue-ink:#174a85;--blue-wash:#e9f1fb;--red:#b3261e;--red-wash:#fbecea;--serif:'Source Serif 4',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;}.ds-toast{margin:0 0 0.5rem;background:var(--paper);border:1px solid var(--ink);border-radius:3px;padding:0.6rem 0.9rem;font:400 16px var(--sans);color:var(--ink);max-width:34rem;}.ds-toast.err{border-color:var(--red);color:var(--red);}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Paper's Figures, Live",
+    "overview": "The console is an NSDI paper that moves. The live network is Figure 1, drawn tier by tier on a white page in black ink, with a serif caption the controller's state rewrites. Every other view is a numbered, captioned figure or a booktabs table (\"Table 2: Intents and what the controller made of them.\"). Controls are the only thing that looks pressable; everything else reads as print.\n\nDensity is that of a two-column conference paper projected at the front of a room: few colours, hairline rules, large type, and states carried by line style and labels as well as colour so they survive a washed-out projector and colour-blind viewers. The system explicitly rejects the category default of a dark NOC dashboard of cards and glowing graphs.\n\nMotion is ink settling, not UI animating: a rewritten caption phrase flashes blue-wash and fades over 2.6s, a measured result settles in from a 3px blur over 420ms, flow strokes thicken over 400ms. All on one ease-out curve (cubic-bezier(0.16, 1, 0.3, 1)), all collapsed under reduced motion.",
+    "keyCharacteristics": [
+      "White page, black ink, hairline rules; no cards, no shadows.",
+      "One blue for traffic and for what can be pressed; one red for failure and unknown state.",
+      "Serif for captions, headings, figure numbers and guide words; sans with tabular numerals for controls and data.",
+      "Figure marks are square-cornered; unknown is dashed, down is red dashed with a cross.",
+      "Every view is numbered and captioned like a paper figure or table."
+    ],
+    "rules": [
+      {
+        "name": "The Two Hues Rule",
+        "body": "Blue means traffic or pressable; red means failure or unknown. No third hue exists, and neither colour is ever decorative.",
+        "section": "colors"
+      },
+      {
+        "name": "The Not-By-Colour-Alone Rule",
+        "body": "Every red state also changes line style or carries a label: down is red, thicker and dashed (9 6) with a cross; unknown is red dashed (7 5) on a grey fill; pending is grey dotted (2 5). A greyscale print of Figure 1 must still read correctly.",
+        "section": "colors"
+      },
+      {
+        "name": "The Serif Speaks, The Sans Operates Rule",
+        "body": "Anything the paper would print (title, caption, heading, section number, empty-state sentence) is serif; anything a person clicks or counts is sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Projector Compensation Rule",
+        "body": "Figure type scales with `--k`, the inverse of the SVG's render scale, clamped between 1 and 1.45 (switch IDs and sub-labels cap lower, at 1.2 and 1.25), so labels hold their physical size when Figure 1 is drawn small on a 1024px projector. Figure label sizes are written as `calc(Npx * var(--k, 1))`; base sizes run 14px to 22px.",
+        "section": "typography"
+      },
+      {
+        "name": "The Print Has No Shadows Rule",
+        "body": "Nothing casts a shadow or glows. If something must float, it gets a 1px ink border on paper and nothing more.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square Marks Rule",
+        "body": "Anything drawn in a figure is square-cornered. Only controls carry the 3px radius.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** number and caption every view as \"Figure N:\" or \"Table N:\" with a serif caption, the figure caption below and the table caption above.",
+      "**Do** carry every state in line style or a label as well as colour: red dashed (9 6) with a cross for down, red dashed (7 5) on fill for unknown, grey dotted for pending.",
+      "**Do** write figure label sizes as `calc(Npx * var(--k, 1))` so they hold their size on a 1024px projector.",
+      "**Do** keep Ink Blue for traffic and pressable things and Failure Red for failure and unknown; reserve the filled blue button for the one main action in view.",
+      "**Do** separate regions with rules (2px ink for table bounds, 1px ink for headers, grey hairlines for rows and panes).",
+      "**Do** keep numbers in tabular numerals and right-align numeric columns."
+    ],
+    "donts": [
+      "**Don't** use cards, shadows, glows or decorative gradient fills; the only gradient in the build is the mobile scroll-fade mask on Figure 1.",
+      "**Don't** round figure marks; switch boxes, rings and badges stay square.",
+      "**Don't** introduce a third hue, or use blue or red for decoration.",
+      "**Don't** drift toward a dark NOC dashboard look: dark grounds, tiles of cards, glowing graphs.",
+      "**Don't** lighten the red back toward #c23b22; dashed red strokes wash out on projectors."
+    ]
+  }
+}
