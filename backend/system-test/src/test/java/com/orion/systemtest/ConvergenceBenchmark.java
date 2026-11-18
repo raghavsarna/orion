@@ -66,7 +66,7 @@ class ConvergenceBenchmark {
         String srcSwitch = src.path("switchId").asText();
         String srcIp = hostIp(src.path("subnet").asText(), 10);
         String dstIp = hostIp(dst.path("subnet").asText(), 20);
-        System.out.printf("== Orion-Lite convergence benchmark: %d trials, %s (%s) -> %s (%s), %d pps ==%n",
+        System.out.printf("== Orion convergence benchmark: %d trials, %s (%s) -> %s (%s), %d pps ==%n",
                 TRIALS, srcIp, srcSwitch, dstIp, dst.path("switchId").asText(), PPS);
         for (JsonNode i : get(CTRL + "/api/intents")) {
             call("DELETE", CTRL + "/api/intents/" + i.path("id").asText(), null);

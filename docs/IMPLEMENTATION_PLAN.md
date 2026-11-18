@@ -1,4 +1,4 @@
-# Orion-Lite — Implementation Plan
+# Orion — Implementation Plan
 
 > **Status: all pieces implemented (2026-11-12).** Run `docker compose up --build`, open http://localhost:3000, and check with `docker compose --profile test run --rm system-test`.
 

@@ -1,4 +1,4 @@
-# Orion-Lite network topology: the small triangle used by the end-to-end system test.
+# Orion network topology: the small triangle used by the end-to-end system test.
 # The switch network reads this file at startup. Each switch tells the controller its part when it registers.
 #
 #   switches: id, name, number of ports, and host subnets attached to ports

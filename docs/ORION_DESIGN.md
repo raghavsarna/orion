@@ -1,4 +1,4 @@
-# Orion-Lite — Design
+# Orion — Design
 
 > Version 2.0 (simplified) · Java + Spring Boot (APIs only) · PostgreSQL
 

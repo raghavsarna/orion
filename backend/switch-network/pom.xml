@@ -6,12 +6,12 @@
 
     <parent>
         <groupId>com.orion</groupId>
-        <artifactId>orion-lite</artifactId>
+        <artifactId>orion</artifactId>
         <version>0.1.0</version>
     </parent>
 
     <artifactId>switch-network</artifactId>
-    <name>Orion-Lite :: Switch Network</name>
+    <name>Orion :: Switch Network</name>
 
     <dependencies>
         <dependency>

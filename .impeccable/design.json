@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-11-18T11:46:59.076918+00:00",
-  "title": "Design System: Orion-Lite",
+  "title": "Design System: Orion",
   "extensions": {
     "colorMeta": {
       "ink-blue": {
@@ -190,7 +190,7 @@
     "typographyMeta": {
       "title": {
         "displayName": "Title",
-        "purpose": "\"Orion-Lite\" in the running head."
+        "purpose": "\"Orion\" in the running head."
       },
       "headline": {
         "displayName": "Headline",

@@ -1,4 +1,4 @@
--- Orion-Lite schema. Topology and flow rules are NOT stored: they are rebuilt from the switches and the intents.
+-- Orion schema. Topology and flow rules are NOT stored: they are rebuilt from the switches and the intents.
 
 -- Every intent the user gave. status: PENDING, ACTIVE, NOT_POSSIBLE, EXPIRED
 CREATE TABLE IF NOT EXISTS intent (

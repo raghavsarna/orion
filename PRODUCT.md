@@ -13,7 +13,7 @@ live in front of an instructor and classmates. The audience watches; they need t
 and connect each behaviour to the paper.
 
 ## Product Purpose
-Orion-Lite is a small, runnable SDN control plane modelled on Orion: a simulated switch network, a controller with an
+This project, Orion, is a small, runnable SDN control plane modelled on Google's Orion: a simulated switch network, a controller with an
 in-memory Network Information Base (NIB) and publish/subscribe, intent-based flow programming, loss-free sequenced
 rule updates, Fail Static / Fail Closed handling of unknown switches, ECMP multipath, and convergence measurement.
 The console exists to demonstrate that implementation convincingly: success means the audience understands which

@@ -1,4 +1,4 @@
-# Orion-Lite
+# Orion
 
 A small, runnable implementation of the ideas in "Orion: Google's Software-Defined Networking Control Plane" (NSDI 2021). It has a simulated switch network, a controller with an in-memory Network Information Base (NIB) and publish/subscribe, intent-based flow programming, sequenced rule updates, Fail Static and Fail Closed handling of unreachable switches, ECMP multipath, convergence measurement, PostgreSQL for intents, and a React console that runs guided walkthroughs of the paper on the live system.
 
@@ -43,7 +43,7 @@ Provider and model are in [config/llm.yaml](config/llm.yaml) (default: Anthropic
 
 ## What from the paper is implemented
 
-| Paper | Orion-Lite | Code |
+| Paper | This implementation | Code |
 |---|---|---|
 | §4.1 NIB: in-memory, versioned, publish/subscribe, one event order for all subscribers | Adjacency matrix plus switch map behind one lock; every change is applied, versioned, then queued to each subscriber's own thread | `controller/topology/Nib.java`, `NibSubscriber.java` |
 | §4.1 Topology Manager | Registration, link notifications, probes, neighbour checks for silent switches | `topology/TopologyManager.java` |

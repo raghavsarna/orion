@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.orion</groupId>
-    <artifactId>orion-lite</artifactId>
+    <artifactId>orion</artifactId>
     <version>0.1.0</version>
     <packaging>pom</packaging>
-    <name>Orion-Lite</name>
+    <name>Orion</name>
 
     <modules>
         <module>shared</module>

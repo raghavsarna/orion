@@ -1,5 +1,5 @@
 ---
-name: Orion-Lite
+name: Orion
 description: The paper's figures, live. A projector-legible SDN demo console drawn in the grammar of an NSDI paper.
 colors:
   ink-blue: "#1f5fa8"
@@ -114,7 +114,7 @@ components:
     padding: "0.6rem 0.9rem"
 ---
 
-# Design System: Orion-Lite
+# Design System: Orion
 
 ## Overview
 
@@ -172,7 +172,7 @@ Both families are bundled through Fontsource (sans 400/600/700, serif 400/400-it
 **Character:** The serif is the paper speaking (titles, captions, figure numbers, section references in italic); the sans is the instrument (buttons, tabs, fields, numbers). Root size is 18px, 20px from 1600px wide, so everything is set for the back of the room.
 
 ### Hierarchy
-- **Title** (serif 600, 1.35rem, line-height 1, -0.01em): "Orion-Lite" in the running head.
+- **Title** (serif 600, 1.35rem, line-height 1, -0.01em): "Orion" in the running head.
 - **Headline** (serif 600, 1.4rem, 1.25): walkthrough titles in the side pane; the paper section number sits before it in italic 400 Ink 3. Subheads are serif 600 at 1.05rem; scenario titles serif 600 at 1.12rem.
 - **Guide** (serif italic 400, 1.05rem): guide words in the running head naming the current paper section, single line with ellipsis.
 - **Caption** (serif 400, 0.98rem, 1.5, max 75ch): figure captions, with "Figure N:" in serif 600 and the figure's title in italic. Ledes and results are serif at 1rem to 1.02rem, line-height 1.55, max 62ch.

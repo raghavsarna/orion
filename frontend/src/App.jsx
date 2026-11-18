@@ -76,7 +76,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="head">
-        <h1>Orion-Lite</h1>
+        <h1>Orion</h1>
         <p className="guide" aria-label="Paper section">{guide}</p>
         <dl className="state">
           <Health ok={!ctrlErr && ctrlTopo} label="controller" />

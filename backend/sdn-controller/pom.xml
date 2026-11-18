@@ -6,12 +6,12 @@
 
     <parent>
         <groupId>com.orion</groupId>
-        <artifactId>orion-lite</artifactId>
+        <artifactId>orion</artifactId>
         <version>0.1.0</version>
     </parent>
 
     <artifactId>sdn-controller</artifactId>
-    <name>Orion-Lite :: SDN Controller</name>
+    <name>Orion :: SDN Controller</name>
 
     <dependencies>
         <dependency>

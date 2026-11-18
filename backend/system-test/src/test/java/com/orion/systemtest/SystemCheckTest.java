@@ -41,7 +41,7 @@ class SystemCheckTest {
 
     @Test
     void wholeSystem() throws Exception {
-        System.out.println("== Orion-Lite system check ==");
+        System.out.println("== Orion system check ==");
 
         // 1. topology from the file, registered with the controller
         JsonNode topo = waitFor(() -> get(CTRL + "/api/topology"), t -> t.path("links").size() >= 3, 60);

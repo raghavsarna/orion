@@ -7,7 +7,7 @@ related_targets: []
 
 # Demo console (frontend/)
 
-Scope: the whole Orion-Lite UI at http://localhost:3000. Mode: operate (a presenter drives it live on a classroom projector).
+Scope: the whole Orion UI at http://localhost:3000. Mode: operate (a presenter drives it live on a classroom projector).
 Audience/job: presenter walks the class through paper concepts in a few minutes of a 15-20 min slot; the class must see what happened and which section of the paper it is.
 Constraints: projector legibility (large type, high contrast, states not by colour alone); works offline (fonts bundled); LLM box degrades without a key; scenarios assume the fabric topology and say so otherwise.
 
@@ -19,7 +19,7 @@ OWN-WORLD: White page, black ink, hairline rules, one ink blue (#1f5fa8) for tra
 
 STORY: The presenter opens a walkthrough tied to a paper section, clicks Run, the figure changes (traffic counts on links, dashed switches, caption rewritten), and the step's explanation states what the paper predicts and what was measured. The class leaves able to name Fail Static, ECMP, NIB, reconciliation, convergence.
 
-FIRST VIEWPORT: Running head across the top: "Orion-Lite" in serif, the current paper section as guide words, live status (controller, NIB version, fail mode). Left ~62%: Figure 1, the topology drawn tier by tier, with its live caption underneath. Right ~38%: tabs Walkthrough | Intents | Inspect | Measure | Log; Walkthrough open, current step expanded with its Run button in ink blue, other steps as a numbered list.
+FIRST VIEWPORT: Running head across the top: "Orion" in serif, the current paper section as guide words, live status (controller, NIB version, fail mode). Left ~62%: Figure 1, the topology drawn tier by tier, with its live caption underneath. Right ~38%: tabs Walkthrough | Intents | Inspect | Measure | Log; Walkthrough open, current step expanded with its Run button in ink blue, other steps as a numbered list.
 
 FORM: Paper's Figures (USENIX/NSDI two-column figure grammar), candidate 1 of my list, chosen by the user as the pick card. seed:37274db5efbe87fa
 

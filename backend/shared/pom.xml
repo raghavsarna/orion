@@ -6,12 +6,12 @@
 
     <parent>
         <groupId>com.orion</groupId>
-        <artifactId>orion-lite</artifactId>
+        <artifactId>orion</artifactId>
         <version>0.1.0</version>
     </parent>
 
     <artifactId>shared</artifactId>
-    <name>Orion-Lite :: Shared</name>
+    <name>Orion :: Shared</name>
     <description>Plain-Java classes shared by the switch network and the controller (no Spring).</description>
 
     <dependencies>
