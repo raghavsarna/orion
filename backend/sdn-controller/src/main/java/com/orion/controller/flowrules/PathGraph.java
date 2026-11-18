@@ -13,8 +13,10 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 /**
- * The part of the topology used for routing: ALIVE switches and the links between them.
- * Provides Dijkstra in two flavours: fewest hops (baseline routing) and lowest latency (latency intents).
+ * The part of the topology used for routing: ALIVE switches (plus, in Fail Static, the switches whose state is
+ * unknown) and the links between them.
+ * Provides Dijkstra in two flavours, fewest hops (baseline routing) and lowest latency (latency intents),
+ * and the equal-cost next hops used for multipath (ECMP) forwarding.
  */
 public final class PathGraph {
 
@@ -37,9 +39,14 @@ public final class PathGraph {
     }
 
     public static PathGraph of(NibSnapshot snap) {
+        return of(snap, Set.of());
+    }
+
+    /** ALIVE switches plus {@code alsoUse} (switches the controller keeps routing through in Fail Static). */
+    public static PathGraph of(NibSnapshot snap, Set<String> alsoUse) {
         Map<String, List<LinkInfo>> adj = new LinkedHashMap<>();
         for (String node : snap.graph().nodes()) {
-            if (snap.isAlive(node)) {
+            if (snap.isAlive(node) || alsoUse.contains(node)) {
                 adj.put(node, new ArrayList<>());
             }
         }
@@ -55,6 +62,15 @@ public final class PathGraph {
 
     public boolean hasNode(String id) {
         return adjacency.containsKey(id);
+    }
+
+    public Set<String> nodes() {
+        return adjacency.keySet();
+    }
+
+    /** Number of links (each counted once). */
+    public int linkCount() {
+        return adjacency.values().stream().mapToInt(List::size).sum() / 2;
     }
 
     public boolean hasLink(String linkId) {
@@ -106,6 +122,48 @@ public final class PathGraph {
             }
         }
         return routes;
+    }
+
+    /**
+     * For every switch that can reach {@code target}: every port that starts a fewest-hops path to it.
+     * More than one port = equal-cost multipath. Ports are sorted, so the result is deterministic.
+     */
+    public Map<String, List<Integer>> equalCostPortsTo(String target) {
+        Map<String, List<Integer>> out = new HashMap<>();
+        if (!adjacency.containsKey(target)) {
+            return out;
+        }
+        Map<String, Integer> hops = new HashMap<>();
+        hops.put(target, 0);
+        List<String> frontier = new ArrayList<>(List.of(target));
+        while (!frontier.isEmpty()) {
+            List<String> next = new ArrayList<>();
+            for (String u : frontier) {
+                for (LinkInfo l : adjacency.get(u)) {
+                    if (!hops.containsKey(l.toSwitch())) {
+                        hops.put(l.toSwitch(), hops.get(u) + 1);
+                        next.add(l.toSwitch());
+                    }
+                }
+            }
+            frontier = next;
+        }
+        for (Map.Entry<String, Integer> e : hops.entrySet()) {
+            String u = e.getKey();
+            if (u.equals(target)) {
+                continue;
+            }
+            List<Integer> ports = new ArrayList<>();
+            for (LinkInfo l : adjacency.get(u)) {
+                Integer h = hops.get(l.toSwitch());
+                if (h != null && h == e.getValue() - 1) {
+                    ports.add(l.fromPort());
+                }
+            }
+            Collections.sort(ports);
+            out.put(u, ports);
+        }
+        return out;
     }
 
     /** Links along the best path from {@code from} to {@code to} (empty when equal, null when unreachable). */

@@ -106,9 +106,9 @@ public final class FlowTable {
             throw NetworkException.badRequest("rule " + r.ruleId() + ": action must be FORWARD or DROP");
         }
         if (r.action().isForward()) {
-            Integer port = r.action().port();
-            if (port == null || port < 1 || port > totalPorts) {
-                throw NetworkException.badRequest("rule " + r.ruleId() + ": FORWARD needs a port 1.." + totalPorts);
+            List<Integer> ports = r.action().allPorts();
+            if (ports.isEmpty() || ports.stream().anyMatch(port -> port == null || port < 1 || port > totalPorts)) {
+                throw NetworkException.badRequest("rule " + r.ruleId() + ": FORWARD needs ports 1.." + totalPorts);
             }
         }
         if (r.rateLimit() != null && r.rateLimit().packetsPerSecond() < 1) {

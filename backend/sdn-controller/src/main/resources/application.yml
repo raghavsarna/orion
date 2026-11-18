@@ -19,3 +19,6 @@ orion:
     password: ${DB_PASSWORD:orion}
   llm-config: ${LLM_CONFIG:config/llm.yaml}
   timezone: ${ORION_TIMEZONE:Asia/Kolkata}
+  # Fail Static vs Fail Closed (Orion paper 3.2): if routing around switches in unknown state would lose more
+  # than this share of link capacity (or cut off a host subnet), keep using them instead. Changeable at runtime.
+  fail-static-threshold: ${FAIL_STATIC_THRESHOLD:0.4}

@@ -38,7 +38,8 @@ public final class FlowPusher {
     private static final Logger log = LoggerFactory.getLogger(FlowPusher.class);
 
     /** What one push did. */
-    public record PushReport(int switchesChanged, int added, int modified, int deleted, List<String> failed) {
+    public record PushReport(int switchesChanged, int added, int modified, int deleted, int rounds,
+                             List<String> failed) {
     }
 
     private final SwitchClient client;
@@ -128,7 +129,7 @@ public final class FlowPusher {
             }
         }
         if (upserts.isEmpty() && deletes.isEmpty()) {
-            return new PushReport(0, 0, 0, 0, new ArrayList<>(skip));
+            return new PushReport(0, 0, 0, 0, 0, new ArrayList<>(skip));
         }
 
         int[] counts = new int[3];   // added, modified, deleted
@@ -172,9 +173,12 @@ public final class FlowPusher {
         }
         removals.forEach(CompletableFuture::join);
 
-        PushReport report = new PushReport(changed.size(), counts[0], counts[1], counts[2], new ArrayList<>(failed));
+        int roundCount = rounds.size() + (removals.isEmpty() ? 0 : 1);
+        PushReport report = new PushReport(changed.size(), counts[0], counts[1], counts[2], roundCount,
+                new ArrayList<>(failed));
         activity.add("RULES_PUSHED", report.added() + " added, " + report.modified() + " modified, "
                 + report.deleted() + " deleted on " + String.join(", ", new TreeSet<>(changed))
+                + " in " + roundCount + (roundCount == 1 ? " round" : " rounds")
                 + (failed.isEmpty() ? "" : "; failed on " + String.join(", ", failed)));
         return report;
     }

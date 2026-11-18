@@ -131,7 +131,7 @@ public final class Switch implements Runnable {
             network.log().record(id, p, inPort, "DROPPED", null, rule.ruleId());
             return;
         }
-        output(p, inPort, rule.action().port(), rule.ruleId());
+        output(p, inPort, rule.action().portFor(p), rule.ruleId());
     }
 
     /** Send a packet out of a port: deliver to the host subnet, or put it on the link. */
@@ -150,7 +150,7 @@ public final class Switch implements Runnable {
             return;
         }
         network.log().record(id, p, inPort, "FORWARDED", port, ruleId);
-        network.deliver(link, id, p.withTtl(p.ttl() - 1));
+        network.deliver(link, id, p.crossed(link.latencyMs()));
     }
 
     // ---------- southbound operations ----------

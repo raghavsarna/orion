@@ -36,6 +36,7 @@ services:
     environment:
       <<: *common-env
       CONTROLLER_PORT: 8181
+      FAIL_STATIC_THRESHOLD: ${FAIL_STATIC_THRESHOLD:-0.4}
       DB_URL: jdbc:postgresql://postgres:5432/orion
       DB_USER: orion
       DB_PASSWORD: orion
@@ -61,7 +62,8 @@ services:
       NETWORK_PORT: 9191
       CONTROLLER_URL: http://sdn-controller:8181
       NETWORK_PUBLIC_URL: http://switch-network:9191
-      TOPOLOGY_FILE: /config/topology.yaml
+      # demo fabric by default; the system test needs ORION_TOPOLOGY=topology-triangle.yaml
+      TOPOLOGY_FILE: /config/${ORION_TOPOLOGY:-topology.yaml}
     volumes:
       - ./config:/config:ro
     ports:
@@ -93,6 +95,20 @@ services:
       NET: http://switch-network:9191
       NET_FROM_CONTROLLER: http://switch-network:9191
     command: ["mvn", "-B", "-ntp", "-q", "-pl", "system-test", "test", "-Dorion.systemTest=true", "-Dsurefire.printSummary=false"]
+
+  # Convergence benchmark (only with --profile test):  docker compose --profile test run --rm benchmark
+  benchmark:
+    profiles: ["test"]
+    image: maven:3.9.11-eclipse-temurin-21
+    working_dir: /src
+    volumes:
+      - ./backend:/src
+      - orion-m2:/root/.m2
+    environment:
+      CTRL: http://sdn-controller:8181
+      NET: http://switch-network:9191
+      TRIALS: ${TRIALS:-10}
+    command: ["mvn", "-B", "-ntp", "-q", "-pl", "system-test", "test", "-Dorion.benchmark=true", "-Dtest=ConvergenceBenchmark", "-Dsurefire.printSummary=false"]
 
 volumes:
   orion-db:

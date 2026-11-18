@@ -52,9 +52,10 @@ public final class PacketInHandler {
             if (r.match() == null || r.match().matches(in.packet(), in.inPort(), now)) {
                 if (r.action().isForward()) {
                     try {
-                        client.packetOut(sw.address(), new PacketOut(in.packet(), r.action().port()));
+                        int port = r.action().portFor(in.packet());
+                        client.packetOut(sw.address(), new PacketOut(in.packet(), port));
                         activity.add("PACKET_IN", in.switchId() + " " + in.packet().summary() + " -> packet-out port "
-                                + r.action().port() + " (switch was missing rule " + r.ruleId() + ")");
+                                + port + " (switch was missing rule " + r.ruleId() + ")");
                     } catch (SwitchClient.SwitchCallException e) {
                         activity.add("PACKET_IN", in.switchId() + " packet-out failed: " + e.getMessage());
                     }

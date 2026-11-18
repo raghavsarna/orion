@@ -21,7 +21,9 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
  * End-to-end check of the whole running system, through the same HTTP APIs the UI uses.
  * Prints PASS/FAIL per step and fails if any step failed.
  *
- * <p>Run (needs only Docker, with the system up): {@code docker compose --profile test run --rm system-test}
+ * <p>Run against the triangle topology (needs only Docker):
+ * {@code ORION_TOPOLOGY=topology-triangle.yaml docker compose up -d --build}, then
+ * {@code docker compose --profile test run --rm system-test}
  *
  * <p>It changes the running network (intents, a link, a switch) and cleans up after itself.
  */
@@ -46,6 +48,7 @@ class SystemCheckTest {
         check("controller knows 3 switches and 3 links", topo != null && topo.path("switches").size() == 3, "");
         deleteAllIntents();
         sleep(1);
+        traffic(30, 50, Map.of());   // warm up the JVMs so latency measurements are not skewed by JIT compilation
 
         // 2. baseline routing: fewest hops (s1 -> s3 directly over l3)
         List<JsonNode> logs = traffic(10, 20, Map.of());
@@ -58,10 +61,13 @@ class SystemCheckTest {
         sleep(1);
         logs = traffic(10, 20, Map.of());
         check("latency: s1 now forwards on port 1 (via s2)", count(logs, "FORWARDED", "s1", 1) == 10, "");
-        // measured = configured 10 ms + a few ms of simulator overhead; it must beat the 20 ms direct link
+        // simulated path latency (sum of link latencies) must beat the 20 ms direct link; wall clock adds host jitter
         long max = logs.stream().filter(e -> e.path("event").asText().equals("DELIVERED"))
+                .mapToLong(e -> e.path("pathLatencyMs").asLong()).max().orElse(999);
+        long wall = logs.stream().filter(e -> e.path("event").asText().equals("DELIVERED"))
                 .mapToLong(e -> e.path("latencyMs").asLong()).max().orElse(999);
-        check("latency: faster than the direct 20 ms link", max < 20, "measured max " + max + " ms");
+        check("latency: faster than the direct 20 ms link", max < 20,
+                "path " + max + " ms, wall clock max " + wall + " ms");
         JsonNode bad = intent(Map.of("type", "MAX_LATENCY", "src", "10.0.1.0/24", "dst", "10.0.3.0/24", "maxLatencyMs", 5));
         check("MAX_LATENCY 5 ms is NOT_POSSIBLE", status(bad).equals("NOT_POSSIBLE"), reason(bad));
         delete(CTRL + "/api/intents/" + bad.path("id").asText());
@@ -137,6 +143,13 @@ class SystemCheckTest {
         // 11. control channel lost but forwarding works -> DEAD and kept (neighbours see its links up)
         call("PATCH", NET + "/network/switches/s2", Map.of("connected", false));
         check("s2 marked DEAD but kept (neighbours see its links up)", waitUntil(() -> switchStatus("s2").equals("DEAD"), 25), "");
+        // s2 carries 2 of the 3 links: routing around it costs 67% of capacity > 40% threshold -> Fail Static
+        check("unknown s2 -> FAIL_STATIC (67% capacity > 40%)",
+                waitUntil(() -> failMode().equals("FAIL_STATIC"), 10), failModeText());
+        call("PUT", CTRL + "/api/fail-mode", Map.of("threshold", 0.9));
+        check("threshold 90% -> FAIL_CLOSED (route around s2)",
+                waitUntil(() -> failMode().equals("FAIL_CLOSED"), 10), failModeText());
+        call("PUT", CTRL + "/api/fail-mode", Map.of("threshold", 0.4));
         call("PATCH", NET + "/network/switches/s2", Map.of("connected", true));
         check("s2 ALIVE again", waitUntil(() -> switchStatus("s2").equals("ALIVE"), 15), "");
 
@@ -211,6 +224,14 @@ class SystemCheckTest {
             }
         }
         return "";
+    }
+
+    private String failMode() {
+        return get(CTRL + "/api/fail-mode").path("failMode").path("mode").asText();
+    }
+
+    private String failModeText() {
+        return get(CTRL + "/api/fail-mode").path("explanation").asText();
     }
 
     private long lastLogSeq() {

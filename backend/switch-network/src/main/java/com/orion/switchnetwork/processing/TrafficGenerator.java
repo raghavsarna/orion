@@ -22,16 +22,18 @@ public final class TrafficGenerator {
     /**
      * POST /switch/{id}/send body: the packet to send, how fast, for how long.
      * {@code count} (optional) caps the total; otherwise packetsPerSecond × durationSec packets are sent.
+     * {@code flows} (optional, default 1) spreads the packets over that many flows by stepping the source port,
+     * so multipath (ECMP) rules can send different flows on different paths.
      */
     public record SendRequest(Integer inPort, String srcIp, Integer srcPort, String dstIp, Integer dstPort,
                               String l2Protocol, String l3Protocol, String l4Protocol, String appProtocol,
                               String host, Integer sizeBytes, Integer packetsPerSecond, Integer durationSec,
-                              Integer count) {
+                              Integer count, Integer flows) {
     }
 
     /** A running or finished send job. */
     public record JobView(String jobId, String switchId, int inPort, String packet, int packetsPerSecond,
-                          long total, long sent, boolean running) {
+                          int flows, long total, long sent, boolean running) {
     }
 
     private final class Job {
@@ -40,17 +42,19 @@ public final class TrafficGenerator {
         final int inPort;
         final Packet template;
         final int pps;
+        final int flows;
         final long total;
         final AtomicLong sent = new AtomicLong();
         volatile ScheduledFuture<?> future;
         volatile boolean running = true;
 
-        Job(String id, String switchId, int inPort, Packet template, int pps, long total) {
+        Job(String id, String switchId, int inPort, Packet template, int pps, int flows, long total) {
             this.id = id;
             this.switchId = switchId;
             this.inPort = inPort;
             this.template = template;
             this.pps = pps;
+            this.flows = flows;
             this.total = total;
         }
 
@@ -62,7 +66,12 @@ public final class TrafficGenerator {
             }
             try {
                 Switch sw = network.get(switchId);
-                sw.receive(template.withIdentity(id + "-" + n, System.currentTimeMillis()), inPort);
+                Packet p = template.withIdentity(id + "-" + n, System.currentTimeMillis());
+                if (flows > 1) {
+                    int base = template.srcPort() == null ? 40000 : template.srcPort();
+                    p = p.withSrcPort(base + (int) ((n - 1) % flows));
+                }
+                sw.receive(p, inPort);
             } catch (NetworkException e) {
                 finish();   // switch was removed
             }
@@ -80,7 +89,7 @@ public final class TrafficGenerator {
         }
 
         JobView view() {
-            return new JobView(id, switchId, inPort, template.summary(), pps, total, Math.min(sent.get(), total),
+            return new JobView(id, switchId, inPort, template.summary(), pps, flows, total, Math.min(sent.get(), total),
                     running);
         }
     }
@@ -109,6 +118,10 @@ public final class TrafficGenerator {
         if (duration < 1 || duration > 3600) {
             throw NetworkException.badRequest("durationSec must be 1..3600");
         }
+        int flows = r.flows() == null ? 1 : r.flows();
+        if (flows < 1 || flows > 1000) {
+            throw NetworkException.badRequest("flows must be 1..1000");
+        }
         long total = r.count() != null && r.count() > 0 ? r.count() : (long) pps * duration;
         Packet template = new Packet(null, r.srcIp(), r.srcPort(), r.dstIp(), r.dstPort(),
                 orDefault(r.l2Protocol(), "ETHERNET"), orDefault(r.l3Protocol(), "IPV4"),
@@ -116,7 +129,7 @@ public final class TrafficGenerator {
                 r.sizeBytes() == null ? 512 : r.sizeBytes(), 64, 0);
 
         String id = "t" + nextId.incrementAndGet();
-        Job job = new Job(id, switchId, r.inPort(), template, pps, total);
+        Job job = new Job(id, switchId, r.inPort(), template, pps, flows, total);
         jobs.put(id, job);
         long periodMicros = 1_000_000L / pps;
         job.future = network.trafficScheduler().scheduleAtFixedRate(job::tick, 0, periodMicros, TimeUnit.MICROSECONDS);

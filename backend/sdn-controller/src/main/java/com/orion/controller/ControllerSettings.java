@@ -12,8 +12,9 @@ import java.time.ZoneId;
  * @param dbUrl              JDBC URL of PostgreSQL
  * @param llmConfigFile      path to llm.yaml
  * @param zone               time zone for intent time windows
+ * @param failStaticThreshold capacity degradation above which the controller fails static (0..1)
  */
 public record ControllerSettings(String authToken, int probeIntervalSec, int maxMissedProbes, int safetyCheckSec,
                                  String dbUrl, String dbUser, String dbPassword, String llmConfigFile,
-                                 ZoneId zone) {
+                                 ZoneId zone, double failStaticThreshold) {
 }

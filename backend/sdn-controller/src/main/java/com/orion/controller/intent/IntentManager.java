@@ -3,10 +3,12 @@ package com.orion.controller.intent;
 import com.orion.controller.ActivityLog;
 import com.orion.controller.ControllerException;
 import com.orion.controller.ControllerSettings;
+import com.orion.controller.flowrules.FailMode;
 import com.orion.controller.flowrules.FlowPusher;
 import com.orion.controller.flowrules.GenerationResult;
 import com.orion.controller.flowrules.PlannedRule;
 import com.orion.controller.flowrules.RuleGenerator;
+import com.orion.controller.metrics.ConvergenceTracker;
 import com.orion.controller.storage.GroupRepository;
 import com.orion.controller.storage.IntentRepository;
 import com.orion.controller.topology.Nib;
@@ -60,6 +62,8 @@ public final class IntentManager {
     private final AtomicBoolean verifyRequested = new AtomicBoolean();
     private volatile GenerationResult last = GenerationResult.empty();
     private volatile List<Intent> lastIntents = List.of();
+    private final ConvergenceTracker convergence = new ConvergenceTracker();
+    private volatile double failStaticThreshold;
 
     public IntentManager(IntentRepository intents, GroupRepository groups, Nib nib, RuleGenerator generator,
                          FlowPusher pusher, ControllerSettings settings, ActivityLog activity) {
@@ -70,6 +74,7 @@ public final class IntentManager {
         this.pusher = pusher;
         this.settings = settings;
         this.activity = activity;
+        this.failStaticThreshold = settings.failStaticThreshold();
     }
 
     /** Called once the database is ready: first computation, then the periodic safety check. */
@@ -86,6 +91,7 @@ public final class IntentManager {
 
     /** NIB notification (this manager is a NIB subscriber). */
     public void onNibEvent(NibEvent e) {
+        convergence.triggered(e.type(), e.linkId() != null ? e.linkId() : e.switchId(), e.time());
         switch (e.type()) {
             case "SWITCH_ADDED", "SWITCH_REBOOTED", "SWITCH_ALIVE" -> pusher.markVerify(e.switchId());
             default -> {
@@ -118,12 +124,20 @@ public final class IntentManager {
             verifyRequested.set(true);   // the scheduled first run will pick this up
             return;
         }
+        List<ConvergenceTracker.Trigger> triggers = convergence.drain();
         try {
+            long computeStart = System.currentTimeMillis();
             List<Intent> all = intents.findAll();
             Map<String, List<String>> groupMap = groups.findAll();
             NibSnapshot snap = nib.snapshot();
-            GenerationResult result = generator.generate(snap, all, groupMap, ZonedDateTime.now(settings.zone()));
+            GenerationResult result = generator.generate(snap, all, groupMap, ZonedDateTime.now(settings.zone()),
+                    failStaticThreshold);
+            long computeEnd = System.currentTimeMillis();
             FlowPusher.PushReport report = pusher.push(result.rules(), snap, verify);
+            long programEnd = System.currentTimeMillis();
+            reportFailMode(last.failMode(), result.failMode());
+            convergence.record(triggers, computeStart, computeEnd, programEnd, report.rounds(), report.added(),
+                    report.modified(), report.deleted(), report.switchesChanged(), result.failMode().mode());
             if (!report.failed().isEmpty()) {
                 // a switch could not be read or written (e.g. still starting): try again shortly
                 worker.schedule(() -> requestRecompute(false), 2, TimeUnit.SECONDS);
@@ -137,6 +151,38 @@ public final class IntentManager {
         } catch (RuntimeException e) {
             log.error("Recompute failed", e);
         }
+    }
+
+    private void reportFailMode(FailMode before, FailMode now) {
+        if (!before.mode().equals(now.mode()) || !before.unknown().equals(now.unknown())) {
+            activity.add(now.mode(), now.explain());
+        }
+    }
+
+    // ---------- Fail Static / Fail Closed ----------
+
+    public FailMode failMode() {
+        FailMode m = last.failMode();
+        return new FailMode(m.mode(), m.unknown(), m.totalLinks(), m.linksLost(), m.degradation(),
+                failStaticThreshold, m.disconnects());
+    }
+
+    public double failStaticThreshold() {
+        return failStaticThreshold;
+    }
+
+    public void setFailStaticThreshold(double threshold) {
+        if (threshold < 0 || threshold > 1) {
+            throw ControllerException.badRequest("threshold must be between 0 and 1");
+        }
+        failStaticThreshold = threshold;
+        activity.add("THRESHOLD_SET", "fail static threshold " + Math.round(threshold * 100) + "% of link capacity");
+        convergence.triggered("THRESHOLD_SET", Math.round(threshold * 100) + "%", System.currentTimeMillis());
+        requestRecompute(false);
+    }
+
+    public ConvergenceTracker convergence() {
+        return convergence;
     }
 
     private void saveOutcomes(List<Intent> all, GenerationResult result) {
@@ -162,6 +208,7 @@ public final class IntentManager {
         Intent intent = new Intent(UUID.randomUUID(), clean, Intent.PENDING, "generating rules", Instant.now());
         intents.insert(intent);
         activity.add("INTENT_STORED", label(intent));
+        convergence.triggered("INTENT_ADDED", clean.type(), System.currentTimeMillis());
         requestRecompute(false);
         return intent;
     }
@@ -171,6 +218,7 @@ public final class IntentManager {
             throw ControllerException.notFound("no intent " + id);
         }
         activity.add("INTENT_DELETED", id.toString());
+        convergence.triggered("INTENT_DELETED", id.toString().substring(0, 8), System.currentTimeMillis());
         requestRecompute(false);
     }
 

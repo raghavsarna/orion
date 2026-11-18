@@ -1,0 +1,31 @@
+# Orion-Lite network topology: the small triangle used by the end-to-end system test.
+# The switch network reads this file at startup. Each switch tells the controller its part when it registers.
+#
+#   switches: id, name, number of ports, and host subnets attached to ports
+#   links:    a wire between two switch ports ("switchId:port"), with its travel time in ms
+#
+# A port can be used by one link or one host subnet, not both.
+
+controller:
+  url: http://localhost:8181        # overridden by the CONTROLLER_URL env var (docker-compose sets it)
+  authToken: orion-secret-token
+
+switches:
+  - id: s1
+    name: edge-north
+    ports: 4
+    hosts:
+      - { port: 4, subnet: 10.0.1.0/24 }
+  - id: s2
+    name: core
+    ports: 4
+  - id: s3
+    name: edge-south
+    ports: 4
+    hosts:
+      - { port: 4, subnet: 10.0.3.0/24 }
+
+links:
+  - { id: l1, a: "s1:1", b: "s2:1", latencyMs: 5 }
+  - { id: l2, a: "s2:2", b: "s3:1", latencyMs: 5 }
+  - { id: l3, a: "s1:2", b: "s3:2", latencyMs: 20 }

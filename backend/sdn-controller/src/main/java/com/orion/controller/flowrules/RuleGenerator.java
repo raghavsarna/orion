@@ -33,9 +33,10 @@ import java.util.stream.Collectors;
  * Turns intents + topology into the flow rules every switch should have. Pure function: no I/O.
  *
  * <ol>
+ *   <li>Fail Static / Fail Closed: decide whether to route around switches in unknown state ({@link FailMode}).</li>
  *   <li>Expired intents are marked EXPIRED.</li>
  *   <li>AVOID_LINK intents remove their link from the routing graph (unless that would cut the network).</li>
- *   <li>Baseline: every switch gets one forward rule per host subnet, along the fewest-hops path.</li>
+ *   <li>Baseline: every switch gets one forward rule per host subnet, over every fewest-hops next hop (ECMP).</li>
  *   <li>MAX_LATENCY: lowest-latency path; NOT_POSSIBLE if it is slower than the limit.</li>
  *   <li>BLOCK_* / ISOLATE_GROUPS: DROP rules on the switches where the traffic enters.</li>
  *   <li>RATE_LIMIT: forward rules with a shared token bucket on the entry switches.</li>
@@ -57,8 +58,14 @@ public final class RuleGenerator {
 
     public GenerationResult generate(NibSnapshot snap, List<Intent> intents, Map<String, List<String>> groups,
                                      ZonedDateTime now) {
+        return generate(snap, intents, groups, now, FailMode.DEFAULT_THRESHOLD);
+    }
+
+    public GenerationResult generate(NibSnapshot snap, List<Intent> intents, Map<String, List<String>> groups,
+                                     ZonedDateTime now, double failStaticThreshold) {
         Map<UUID, GenerationResult.Outcome> outcomes = new LinkedHashMap<>();
-        PathGraph full = PathGraph.of(snap);
+        FailMode.Decision decision = FailMode.decide(snap, failStaticThreshold);
+        PathGraph full = decision.graph();
         List<HostSubnet> hosts = snap.hosts().stream().filter(h -> full.hasNode(h.switchId())).toList();
 
         // 1. expired intents
@@ -99,16 +106,20 @@ public final class RuleGenerator {
 
         Map<String, List<PlannedRule>> rules = new HashMap<>();
 
-        // 3. baseline routing: fewest hops to every host subnet
+        // 3. baseline routing: fewest hops to every host subnet, spread over all equal-cost next hops (ECMP)
         Map<String, Map<String, PathGraph.Route>> towards = new HashMap<>();
+        Map<String, Map<String, List<Integer>>> ecmp = new HashMap<>();
         for (HostSubnet h : hosts) {
             Map<String, PathGraph.Route> routes = g.routesTo(h.switchId(), PathGraph.Weight.HOPS);
+            Map<String, List<Integer>> nextHops = g.equalCostPortsTo(h.switchId());
             towards.put(h.subnet(), routes);
+            ecmp.put(h.subnet(), nextHops);
             for (Map.Entry<String, PathGraph.Route> e : routes.entrySet()) {
                 String sw = e.getKey();
-                int port = sw.equals(h.switchId()) ? h.port() : e.getValue().outPort();
+                Action a = sw.equals(h.switchId()) ? Action.forward(h.port())
+                        : Action.multipath(nextHops.getOrDefault(sw, List.of(e.getValue().outPort())));
                 Match m = Match.builder().dstIp(h.subnet()).build();
-                add(rules, sw, PlannedRule.BASELINE, null, m, Action.forward(port), null, e.getValue().hops());
+                add(rules, sw, PlannedRule.BASELINE, null, m, a, null, e.getValue().hops());
             }
         }
 
@@ -123,7 +134,7 @@ public final class RuleGenerator {
                 String reason = switch (type) {
                     case MAX_LATENCY -> latency(i, g, hosts, groups, own);
                     case BLOCK_TRAFFIC, BLOCK_PROTOCOL, ISOLATE_GROUPS -> block(i, hosts, groups, own);
-                    case RATE_LIMIT -> rateLimit(i, hosts, towards, groups, own);
+                    case RATE_LIMIT -> rateLimit(i, hosts, towards, ecmp, groups, own);
                     default -> "";
                 };
                 own.forEach((sw, list) -> rules.computeIfAbsent(sw, k -> new ArrayList<>()).addAll(list));
@@ -133,7 +144,7 @@ public final class RuleGenerator {
             }
         }
 
-        return new GenerationResult(assignPriorities(rules), outcomes, snap.version());
+        return new GenerationResult(assignPriorities(rules), outcomes, snap.version(), decision.mode());
     }
 
     // ---------- intent compilers ----------
@@ -198,7 +209,7 @@ public final class RuleGenerator {
     }
 
     private String rateLimit(Intent i, List<HostSubnet> hosts, Map<String, Map<String, PathGraph.Route>> towards,
-                             Map<String, List<String>> groups, Map<String, List<PlannedRule>> out) throws NotPossible {
+                             Map<String, Map<String, List<Integer>>> ecmp, Map<String, List<String>> groups, Map<String, List<PlannedRule>> out) throws NotPossible {
         IntentSpec s = i.spec();
         RateLimit limit = new RateLimit(s.packetsPerSecond(), "intent-" + i.id());
         Set<String> switches = new LinkedHashSet<>();
@@ -213,11 +224,12 @@ public final class RuleGenerator {
                         if (r == null) {
                             continue;   // unreachable from here
                         }
-                        int port = sw.equals(h.switchId()) ? h.port() : r.outPort();
+                        Action a = sw.equals(h.switchId()) ? Action.forward(h.port()) : Action.multipath(
+                                ecmp.getOrDefault(h.subnet(), Map.of()).getOrDefault(sw, List.of(r.outPort())));
                         Match.Builder m = Match.builder().srcIp(src).dstIp(dst == null ? h.subnet() : narrower(dst, h.subnet()))
                                 .dstPort(s.port()).timeWindow(s.timeWindow());
                         Protocols.apply(m, s.protocol());
-                        add(out, sw, PlannedRule.RATE_LIMIT, i.id(), m.build(), Action.forward(port), limit, r.hops());
+                        add(out, sw, PlannedRule.RATE_LIMIT, i.id(), m.build(), a, limit, r.hops());
                         switches.add(sw);
                     }
                 }
