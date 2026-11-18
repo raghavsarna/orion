@@ -35,8 +35,6 @@ simulator, and each one maps to a named section of the paper.
 - Topologies: a Clos fabric shaped like the paper's Figure 1 (default) and a 3-switch triangle (system test).
 - Intents: AVOID_LINK, MAX_LATENCY, BLOCK_TRAFFIC, BLOCK_PROTOCOL, ISOLATE_GROUPS, RATE_LIMIT, optional time windows;
   NOT_POSSIBLE with a reason when the network cannot satisfy one.
-- Natural-language (Hindi/Hinglish/English) intents via an LLM, only when ORION_LLM_API_KEY is set. Whether it is
-  shown on demo day is undecided; it must work as a secondary feature and degrade gracefully without a key.
 - Simulated link latency is reported as path latency (sum of configured link latencies); wall-clock timing on Docker
   Desktop for Mac carries tens of ms of timer jitter.
 - Paper vocabulary is authoritative: NIB, intent, Topology Manager, Flow Manager / reconciliation, Routing Engine,

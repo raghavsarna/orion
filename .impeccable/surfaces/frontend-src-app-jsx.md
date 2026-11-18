@@ -9,7 +9,7 @@ related_targets: []
 
 Scope: the whole Orion UI at http://localhost:3000. Mode: operate (a presenter drives it live on a classroom projector).
 Audience/job: presenter walks the class through paper concepts in a few minutes of a 15-20 min slot; the class must see what happened and which section of the paper it is.
-Constraints: projector legibility (large type, high contrast, states not by colour alone); works offline (fonts bundled); LLM box degrades without a key; scenarios assume the fabric topology and say so otherwise.
+Constraints: projector legibility (large type, high contrast, states not by colour alone); works offline (fonts bundled); scenarios assume the fabric topology and say so otherwise.
 
 ## Direction contract
 

@@ -31,16 +31,6 @@ ORION_TOPOLOGY=topology-triangle.yaml docker compose up --build
 
 Edit a topology file, then `docker compose restart switch-network` to load it.
 
-### Natural-language intents (optional)
-
-Set an API key before starting, then use the "In words" box in the Intents tab:
-
-```bash
-ORION_LLM_API_KEY=your-key docker compose up --build
-```
-
-Provider and model are in [config/llm.yaml](config/llm.yaml) (default: Anthropic, `claude-opus-5-5`). `provider: openai-compatible` with a `baseUrl` works with any `/chat/completions` API, including local model servers. The LLM only turns text into an intent. The controller still generates every flow rule itself.
-
 ## What from the paper is implemented
 
 | Paper | This implementation | Code |
@@ -89,7 +79,7 @@ Docker Desktop on macOS oversleeps timers by up to about 100 ms, so wall-clock p
 
 ```
 docker-compose.yml        runs everything (plus the system-test and benchmark profiles)
-config/                   topology.yaml (fabric), topology-triangle.yaml, llm.yaml, prompts/
+config/                   topology.yaml (fabric), topology-triangle.yaml
 docs/                     ORION_DESIGN.md, IMPLEMENTATION_PLAN.md, DEMO.md
 backend/                  Java 21, Maven
   shared/                 packet, flow rule (match, action incl. ECMP), switch-controller messages

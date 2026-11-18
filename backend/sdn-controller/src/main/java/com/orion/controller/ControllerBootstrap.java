@@ -17,11 +17,10 @@ public class ControllerBootstrap {
                                @Value("${orion.db.url}") String dbUrl,
                                @Value("${orion.db.user}") String dbUser,
                                @Value("${orion.db.password}") String dbPassword,
-                               @Value("${orion.llm-config}") String llmConfig,
                                @Value("${orion.timezone}") String timezone,
                                @Value("${orion.fail-static-threshold}") double failStaticThreshold) {
         ControllerSettings settings = new ControllerSettings(authToken, probeIntervalSec, maxMissedProbes,
-                safetyCheckSec, dbUrl, dbUser, dbPassword, llmConfig, ZoneId.of(timezone),
+                safetyCheckSec, dbUrl, dbUser, dbPassword, ZoneId.of(timezone),
                 failStaticThreshold);
         OrionCore core = new OrionCore(settings);
         core.start();

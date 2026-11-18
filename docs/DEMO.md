@@ -59,7 +59,6 @@ Be honest about scale: this is one machine with simulated switches, not Google's
 
 - **The NIB (§4.1).** The first walkthrough shows the adjacency matrix (Figure 2) and a link failure travelling through the NIB to its subscriber.
 - **Inspect.** Click a switch to see its flow table. The ECMP rule shows `ports 1, 2, 3, 4`. Deleting a rule by hand sends the next packet to the controller (Packet-In), and the periodic safety check reinstalls the rule.
-- **Hindi intents.** Start with `ORION_LLM_API_KEY=... docker compose up` and type, for example, "guest network se SSH block karo" into the Intents tab. The LLM only fills in the form. The controller still generates every rule itself.
 
 ## Command-line evidence for the slides
 

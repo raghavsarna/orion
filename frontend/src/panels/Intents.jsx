@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Clock, Languages, Plus, Trash2, X } from 'lucide-react'
+import { Clock, Plus, Trash2, X } from 'lucide-react'
 import { ctrl, usePoll } from '../api.js'
 
 export const TYPES = {
@@ -69,27 +69,11 @@ export default function Intents({ ctx }) {
 
 function IntentForm({ ctx, onDone }) {
   const [f, setF] = useState(EMPTY)
-  const [text, setText] = useState('')
-  const [busy, setBusy] = useState(false)
-  const llm = ctx.status?.llm
   const [groups] = usePoll(() => ctrl('/api/groups'), 10000)
   const endpoints = [...Object.keys(groups || {}).map((g) => 'group:' + g), ...(ctx.ctrlTopo?.hosts || []).map((h) => h.subnet)]
   const links = (ctx.ctrlTopo?.links || []).map((l) => l.linkId).sort()
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
   const fields = TYPES[f.type].fields
-
-  const translate = async () => {
-    setBusy(true)
-    try {
-      const r = await ctrl('/api/intents/translate', { method: 'POST', body: { text } })
-      setF({ ...EMPTY, ...Object.fromEntries(Object.entries(r.intent).map(([k, v]) => [k, v ?? (k === 'timeWindow' ? null : '')])) })
-      ctx.toast('Translated. Check the fields, then save.')
-    } catch (e) {
-      ctx.toast(e.message, 'err')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   const save = () => ctx.act(async () => {
     const num = (v) => (v === '' || v == null ? null : Number(v))
@@ -106,18 +90,6 @@ function IntentForm({ ctx, onDone }) {
 
   return (
     <form className="intent-form" onSubmit={(e) => { e.preventDefault(); save() }}>
-      <fieldset className="nl">
-        <legend>In words (Hindi, Hinglish or English)</legend>
-        <div className="row">
-          <input value={text} onChange={(e) => setText(e.target.value)} placeholder="guest network se SSH block karo"
-                 disabled={!llm?.configured} />
-          <button type="button" className="btn" onClick={translate} disabled={busy || !text.trim() || !llm?.configured}>
-            <Languages size={16} className={busy ? 'spin' : ''} /> Translate
-          </button>
-        </div>
-        {!llm?.configured && <small className="hint">Set ORION_LLM_API_KEY before <code>docker compose up</code> to translate text into an intent.</small>}
-      </fieldset>
-
       <div className="seg" role="radiogroup" aria-label="Intent type">
         {Object.entries(TYPES).map(([k, t]) => (
           <button type="button" key={k} role="radio" aria-checked={f.type === k} className={f.type === k ? 'on' : ''}
