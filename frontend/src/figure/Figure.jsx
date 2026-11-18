@@ -81,9 +81,11 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
           const sel = selected?.kind === 'link' && selected.id === l.id
           const mx = (a.x + b.x) / 2
           const my = (a.y + b.y) / 2
-          // counts sit 38% along from the link's first end, so labels of crossing links do not collide
-          const cx = a.x + (b.x - a.x) * 0.38
-          const cy = a.y + (b.y - a.y) * 0.38
+          // counts sit off the midpoint (where crossing links meet) and clear of the labels under middle-tier switches
+          const [hi, lo, hiId] = a.y <= b.y ? [a, b, l.a.split(':')[0]] : [b, a, l.b.split(':')[0]]
+          const f = tierOf(hiId) === 'mid' ? 0.64 : 0.38
+          const cx = hi.x + (lo.x - hi.x) * f
+          const cy = hi.y + (lo.y - hi.y) * f
           return (
             <g key={l.id} className={`link ${state}${sel ? ' sel' : ''}${focusLinks.has(l.id) ? ' focus' : ''}`}
                onPointerDown={(e) => { e.stopPropagation(); onSelect({ kind: 'link', id: l.id }) }}>

@@ -4,7 +4,7 @@ import { ctrl, usePoll } from '../api.js'
 import { REQUIRED } from '../walkthrough/scenarios.js'
 
 const PARTS = [
-  ['queueMs', 'coalescing window'],
+  ['queueMs', 'queued (200 ms batching window)'],
   ['computeMs', 'compute rules'],
   ['programMs', 'program switches'],
 ]

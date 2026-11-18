@@ -267,7 +267,7 @@ export const SCENARIOS = [
           const t = await lab.failureTrial({ from: SRC, to: DST })
           ui.addTrials([t])
           return `Cut ${t.link}. Detection ${t.detectMs} ms (switch reports the port down). Controller: ${t.queueMs} ms `
-            + `coalescing window, ${t.computeMs} ms to compute, ${t.programMs} ms to program ${t.switchesChanged} switches `
+            + `queued (mostly the 200 ms window that batches events), ${t.computeMs} ms to compute, ${t.programMs} ms to program ${t.switchesChanged} switches `
             + `in ${t.rounds} rounds. ${t.lost} of ${t.sent} packets lost, about ${t.outageMs} ms of outage.`
         },
       },

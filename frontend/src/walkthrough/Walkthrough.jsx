@@ -17,7 +17,7 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, showMatrix
   useEffect(() => {
     curRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [cursor, runs])
-  const missing = REQUIRED.filter((id) => !netTopo?.switches.some((s) => s.id === id))
+  const missing = netTopo ? REQUIRED.filter((id) => !netTopo.switches.some((s) => s.id === id)) : []
 
   useEffect(() => {
     onScene(scenario ? { section: scenario.section, title: scenario.title } : null)

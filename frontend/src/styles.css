@@ -46,7 +46,7 @@ code { font: 0.92em ui-monospace, 'SF Mono', Menlo, monospace; }
 
 .app { height: 100vh; display: grid; grid-template-rows: var(--head) 1fr; }
 .head {
-  display: flex; align-items: baseline; gap: 1.6rem;
+  display: flex; align-items: baseline; gap: 1.6rem; min-width: 0;
   padding: 0 1.6rem; border-bottom: 1px solid var(--ink);
   padding-top: 1.05rem;
 }
@@ -102,8 +102,8 @@ figcaption b { font-weight: 600; }
 .switch:active { cursor: grabbing; }
 .switch .box { fill: var(--paper); stroke: var(--ink); stroke-width: 2; transition: stroke 200ms ease-out, fill 200ms ease-out; }
 .switch .sid { font: 700 20px var(--sans); fill: var(--ink); }
-.switch .sname { font: italic 400 14px var(--serif); fill: var(--ink-2); }
-.switch .note { font: 600 13px var(--sans); fill: var(--ink-3); }
+.switch .sname { font: italic 400 14px var(--serif); fill: var(--ink-2); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
+.switch .note { font: 600 13px var(--sans); fill: var(--ink-3); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
 .switch .note.bad { fill: var(--red); }
 .switch.unknown .box { stroke: var(--red); stroke-dasharray: 7 5; fill: var(--fill); }
 .switch.absent .box { stroke: var(--ink-3); stroke-dasharray: 2 4; }
@@ -295,7 +295,8 @@ legend { font-size: 0.82rem; font-weight: 600; color: var(--ink-2); padding: 0; 
 
 @media (max-width: 1100px) {
   .app { height: auto; min-height: 100vh; }
-  main { grid-template-columns: 1fr; }
+  main { grid-template-columns: minmax(0, 1fr); }
+  .guide { white-space: normal; }
   .side { border-left: 0; border-top: 1px solid var(--ink); }
   .state { display: none; }
   .topology { max-height: none; }
