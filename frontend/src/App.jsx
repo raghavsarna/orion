@@ -1,161 +1,164 @@
-import { useMemo, useState } from 'react'
-import { Activity, Cable, Grid3x3, RefreshCw, ScrollText, Server, Target, Users } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ctrl, net, usePacketLog, usePoll } from './api.js'
-import Topology from './topology/Topology.jsx'
-import SwitchPanel from './sidebar/SwitchPanel.jsx'
-import LinkPanel from './sidebar/LinkPanel.jsx'
-import IntentsPanel from './sidebar/IntentsPanel.jsx'
-import GroupsPanel from './sidebar/GroupsPanel.jsx'
-import LogsPanel from './sidebar/LogsPanel.jsx'
-import EventsPanel from './sidebar/EventsPanel.jsx'
-import { AddLinkDialog, AddSwitchDialog } from './topology/Dialogs.jsx'
-import Matrix from './topology/Matrix.jsx'
+import Figure from './figure/Figure.jsx'
+import Matrix from './figure/Matrix.jsx'
+import { caption } from './figure/caption.js'
+import { summarise } from './figure/traffic.js'
+import Walkthrough from './walkthrough/Walkthrough.jsx'
+import { makeLab } from './walkthrough/lab.js'
+import Intents from './panels/Intents.jsx'
+import Inspect from './panels/Inspect.jsx'
+import Measure from './panels/Measure.jsx'
+import Log from './panels/Log.jsx'
 
 const TABS = [
-  { id: 'intents', icon: Target, title: 'Intents' },
-  { id: 'groups', icon: Users, title: 'IP groups' },
-  { id: 'packets', icon: Activity, title: 'Packet log' },
-  { id: 'events', icon: ScrollText, title: 'Controller activity' },
+  { id: 'walk', title: 'Walkthrough', section: '§4 Architecture' },
+  { id: 'intents', title: 'Intents', section: '§3.1 Intent-based management' },
+  { id: 'inspect', title: 'Inspect', section: '§4.1 Orion Core' },
+  { id: 'measure', title: 'Measure', section: '§6 Evaluation' },
+  { id: 'log', title: 'Log', section: '§4.1 The NIB' },
 ]
 
 export default function App() {
-  const [netTopo, netErr, refreshNet] = usePoll(() => net('/network/topology'), 1500)
-  const [ctrlTopo, ctrlErr, refreshCtrl] = usePoll(() => ctrl('/api/topology'), 1500)
+  const [netTopo, netErr, refreshNet] = usePoll(() => net('/network/topology'), 1200)
+  const [ctrlTopo, ctrlErr, refreshCtrl] = usePoll(() => ctrl('/api/topology'), 1200)
   const [status] = usePoll(() => ctrl('/api/status'), 4000)
+  const [fail] = usePoll(() => ctrl('/api/fail-mode'), 1500)
   const [paused, setPaused] = useState(false)
   const log = usePacketLog(paused)
   const [selected, setSelected] = useState(null)
-  const [tab, setTab] = useState('intents')
-  const [dialog, setDialog] = useState(null)
+  const [tab, setTab] = useState('walk')
+  const [scene, setScene] = useState(null)
+  const [focus, setFocus] = useState({})
   const [matrix, setMatrix] = useState(false)
+  const [trials, setTrials] = useState([])
   const [toasts, setToasts] = useState([])
+  const [now, setNow] = useState(Date.now())
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 500)
+    return () => clearInterval(t)
+  }, [])
+
+  const topoRef = useRef({})
+  topoRef.current = { netTopo, ctrlTopo }
+  const lab = useMemo(() => makeLab(() => topoRef.current), [])
 
   const toast = (text, kind = 'ok') => {
     const id = Math.random()
-    setToasts((t) => [...t, { id, text, kind }])
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), kind === 'err' ? 6000 : 2500)
+    setToasts((t) => [...t.slice(-2), { id, text, kind }])
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), kind === 'err' ? 7000 : 3500)
   }
-  const refresh = () => {
-    refreshNet()
-    refreshCtrl()
-  }
-  /** Runs an API call, shows the result, refreshes the topology. */
   const act = async (fn, okText) => {
     try {
       const r = await fn()
       if (okText) toast(okText)
-      refresh()
+      refreshNet()
+      refreshCtrl()
       return r
     } catch (e) {
       toast(e.message, 'err')
       return undefined
     }
   }
+  const select = (s) => {
+    setSelected(s)
+    if (s) setTab('inspect')
+  }
 
-  const ctrlSwitches = useMemo(() => {
-    const m = {}
-    ctrlTopo?.switches?.forEach((s) => (m[s.id] = s))
-    return m
-  }, [ctrlTopo])
-
-  const ctx = { netTopo, ctrlTopo, ctrlSwitches, status, act, toast, log }
-  const selSwitch = selected?.kind === 'switch' && netTopo?.switches.find((s) => s.id === selected.id)
-  const selLink = selected?.kind === 'link' && netTopo?.links.find((l) => l.id === selected.id)
+  const traffic = useMemo(() => summarise(log.entries, netTopo, now), [log.entries, netTopo, now])
+  const failMode = fail?.failMode
+  const lines = caption({ netTopo, ctrlTopo, failMode, traffic })
+  const ctx = { netTopo, ctrlTopo, status, act, toast, log }
+  const guide = scene && tab === 'walk' ? `${scene.section} ${scene.title}` : TABS.find((t) => t.id === tab).section
 
   return (
     <div className="app">
-      <header>
-        <div className="brand">
-          <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden>
-            <circle cx="16" cy="16" r="13" fill="none" stroke="var(--accent)" strokeWidth="3" />
-            <circle cx="16" cy="16" r="4" fill="var(--accent)" />
-          </svg>
-          Orion
-        </div>
-        <div className="health">
-          <Dot ok={!ctrlErr && ctrlTopo} label="Controller" />
-          <Dot ok={!netErr && netTopo} label="Switch network" />
-          <Dot ok={status?.databaseReady} label="Database" />
-          <Dot ok={status?.llm?.configured} label={status?.llm?.configured ? `LLM ${status.llm.model}` : 'LLM not configured'} warn />
-        </div>
-        <div className="actions">
-          <button className="btn" onClick={() => setDialog('switch')} title="Add switch">
-            <Server size={16} /> +
-          </button>
-          <button className="btn" onClick={() => setDialog('link')} title="Add link">
-            <Cable size={16} /> +
-          </button>
-          <button className={'icon' + (matrix ? ' on' : '')} onClick={() => setMatrix((m) => !m)} title="Adjacency matrix (controller NIB)">
-            <Grid3x3 size={18} />
-          </button>
-          <button className="icon" onClick={() => act(() => ctrl('/api/recompute', { method: 'POST' }), 'Safety check started')} title="Re-check topology and rules now">
-            <RefreshCw size={18} />
-          </button>
-        </div>
+      <header className="head">
+        <h1>Orion-Lite</h1>
+        <p className="guide" aria-label="Paper section">{guide}</p>
+        <dl className="state">
+          <Health ok={!ctrlErr && ctrlTopo} label="controller" />
+          <Health ok={!netErr && netTopo} label="switches" />
+          <Health ok={status?.databaseReady} label="database" />
+          <div><dt>NIB</dt><dd className="num">v{ctrlTopo?.version ?? '–'}</dd></div>
+          <div className={failMode && failMode.mode !== 'NORMAL' ? 'alert' : ''}>
+            <dt>Unknown switches</dt>
+            <dd>{!failMode ? '–' : failMode.mode === 'NORMAL' ? 'none' : failMode.mode === 'FAIL_STATIC' ? 'Fail Static' : 'Fail Closed'}</dd>
+          </div>
+        </dl>
       </header>
 
       <main>
-        <section className="canvas">
-          {netTopo ? (
-            <Topology netTopo={netTopo} ctrlTopo={ctrlTopo} ctrlSwitches={ctrlSwitches} log={log.entries}
-                      selected={selected} onSelect={setSelected} />
-          ) : (
-            <div className="empty">{netErr ? 'Switch network unreachable' : 'Loading…'}</div>
+        <section className="paper" aria-label="Figures">
+          <figure className="fig1">
+            {netTopo ? (
+              <Figure netTopo={netTopo} ctrlTopo={ctrlTopo} traffic={traffic} selected={selected} onSelect={select} focus={focus} />
+            ) : (
+              <div className="placeholder">{netErr ? 'The switch network is not answering. Is docker compose up running?' : 'Loading the network…'}</div>
+            )}
+            <figcaption>
+              <b>Figure 1:</b> <i>The network, live.</i> {lines.join(' ')}
+            </figcaption>
+            <Key />
+          </figure>
+          {matrix && ctrlTopo && (
+            <figure className="fig2">
+              <Matrix ctrlTopo={ctrlTopo} />
+              <figcaption><b>Figure 2:</b> <i>The NIB as an adjacency matrix.</i> Row and column per switch; a cell names the link between them. Version {ctrlTopo.version}.
+                {' '}<button className="link-btn" onClick={() => setMatrix(false)}>Hide</button></figcaption>
+            </figure>
           )}
-          {matrix && ctrlTopo && <Matrix topo={ctrlTopo} onClose={() => setMatrix(false)} />}
-          <Legend />
+          {!matrix && ctrlTopo && <button className="link-btn show-matrix" onClick={() => setMatrix(true)}>Show the NIB as an adjacency matrix (Figure 2)</button>}
         </section>
 
-        <aside>
-          {selSwitch && <SwitchPanel key={selSwitch.id} sw={selSwitch} ctx={ctx} onClose={() => setSelected(null)} />}
-          {selLink && <LinkPanel key={selLink.id} link={selLink} ctx={ctx} onClose={() => setSelected(null)} />}
-          <nav className="tabs">
+        <aside className="side">
+          <nav className="tabs" role="tablist" aria-label="Views">
             {TABS.map((t) => (
-              <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)} title={t.title}>
-                <t.icon size={17} />
-                <span>{t.title}</span>
+              <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>
+                {t.title}
               </button>
             ))}
           </nav>
-          <div className="tab-body">
-            {tab === 'intents' && <IntentsPanel ctx={ctx} />}
-            {tab === 'groups' && <GroupsPanel ctx={ctx} />}
-            {tab === 'packets' && <LogsPanel ctx={ctx} paused={paused} setPaused={setPaused} />}
-            {tab === 'events' && <EventsPanel />}
+          <div className="pane" hidden={tab !== 'walk'}>
+            <Walkthrough lab={lab} netTopo={netTopo} onScene={setScene} onFocus={setFocus} showMatrix={setMatrix}
+                         addTrials={(t) => setTrials((x) => [...x, ...t])} toast={toast} />
           </div>
+          <div className="pane" hidden={tab !== 'intents'}><Intents ctx={ctx} /></div>
+          <div className="pane" hidden={tab !== 'inspect'}><Inspect ctx={ctx} selected={selected} onSelect={select} /></div>
+          <div className="pane" hidden={tab !== 'measure'}>
+            <Measure ctx={ctx} lab={lab} trials={trials} addTrials={(t) => setTrials((x) => [...x, ...t])} />
+          </div>
+          <div className="pane" hidden={tab !== 'log'}><Log log={log} paused={paused} setPaused={setPaused} /></div>
         </aside>
       </main>
 
-      {dialog === 'switch' && <AddSwitchDialog ctx={ctx} onClose={() => setDialog(null)} />}
-      {dialog === 'link' && <AddLinkDialog ctx={ctx} onClose={() => setDialog(null)} />}
-
-      <div className="toasts">
-        {toasts.map((t) => (
-          <div key={t.id} className={'toast ' + t.kind}>{t.text}</div>
-        ))}
+      <div className="toasts" role="status" aria-live="polite">
+        {toasts.map((t) => <p key={t.id} className={'toast ' + t.kind}>{t.text}</p>)}
       </div>
     </div>
   )
 }
 
-function Dot({ ok, label, warn }) {
+function Health({ ok, label }) {
   return (
-    <span className="dot-wrap" title={label}>
-      <span className={'dot ' + (ok ? 'ok' : warn ? 'warn' : 'bad')} />
-      <span className="dot-label">{label}</span>
-    </span>
+    <div className={ok ? '' : 'alert'}>
+      <dt>{label}</dt>
+      <dd>{ok ? 'up' : 'down'}</dd>
+    </div>
   )
 }
 
-function Legend() {
+/** The figure's key, drawn with the same marks as the figure. */
+function Key() {
   return (
-    <div className="legend">
-      <span><i className="sw alive" /> alive</span>
-      <span><i className="sw dead" /> dead</span>
-      <span><i className="sw unknown" /> not registered</span>
-      <span><i className="ln up" /> link</span>
-      <span><i className="ln pending" /> not in controller</span>
-      <span><i className="ln down" /> down</span>
-    </div>
+    <ul className="key" aria-label="Key">
+      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" rx="2" className="k-box" /></svg>healthy switch</li>
+      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" rx="2" className="k-box unknown" /></svg>unknown</li>
+      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire" /></svg>link in NIB</li>
+      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire pending" /></svg>not in NIB</li>
+      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire down" /></svg>failed</li>
+      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-flow" /></svg>packets, last 6 s</li>
+    </ul>
   )
 }

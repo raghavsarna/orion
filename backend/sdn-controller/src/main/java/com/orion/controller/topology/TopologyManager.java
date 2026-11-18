@@ -174,30 +174,40 @@ public final class TopologyManager {
     }
 
     /**
-     * The switch is dead. Ask each neighbour about the link to it:
-     * any neighbour says "up" -> keep it as DEAD; otherwise -> remove it (and its links) from the topology.
+     * The switch stopped answering. Ask each reachable neighbour about the link to it (the paper's indirect signals):
+     * <ul>
+     *   <li>any neighbour sees its link up -> it is probably still forwarding: keep it as DEAD (unknown state);</li>
+     *   <li>neighbours answer and all say down -> unhealthy: remove it and its links from the topology;</li>
+     *   <li>no neighbour can answer (e.g. they lost the controller too) -> no signal either way: keep it unknown.</li>
+     * </ul>
      */
     private void checkNeighbours(SwitchView dead) {
         boolean anyUp = false;
+        boolean anyDown = false;
+        int links = 0;
         List<String> answers = new ArrayList<>();
         for (PortInfo p : dead.ports()) {
             if (!p.isLink() || p.peerSwitch() == null) {
                 continue;
             }
+            links++;
             SwitchView peer = nib.get(p.peerSwitch());
             if (peer == null || peer.status() != SwitchStatus.ALIVE) {
                 continue;
             }
             Optional<Boolean> up = client.linkUp(peer.address(), p.linkId());
             answers.add(peer.id() + " says " + p.linkId() + " is " + up.map(u -> u ? "up" : "down").orElse("unknown"));
-            if (up.orElse(false)) {
-                anyUp = true;
+            if (up.isPresent()) {
+                anyUp |= up.get();
+                anyDown |= !up.get();
             }
         }
         if (anyUp) {
             log.info("Switch {} stays DEAD: {}", dead.id(), answers);
+        } else if (anyDown || links == 0) {
+            nib.remove(dead.id(), answers.isEmpty() ? "it has no links" : String.join(", ", answers));
         } else {
-            nib.remove(dead.id(), answers.isEmpty() ? "no neighbour sees it" : String.join(", ", answers));
+            log.info("Switch {} stays DEAD: no neighbour could answer", dead.id());
         }
     }
 }

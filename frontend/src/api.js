@@ -87,3 +87,34 @@ export function usePacketLog(paused) {
 }
 
 export const time = (ms) => new Date(ms).toLocaleTimeString([], { hour12: false })
+
+export const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/** Polls fn until it returns a truthy value (returned) or the timeout passes (returns null). onTick gets seconds waited. */
+export async function waitFor(fn, timeoutMs, onTick) {
+  const start = Date.now()
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const v = await fn()
+      if (v) return v
+    } catch {
+      /* service still settling */
+    }
+    onTick?.(Math.round((Date.now() - start) / 1000))
+    await sleep(700)
+  }
+  return null
+}
+
+/** "10.0.1.0/24", 7 -> "10.0.1.7" */
+export const hostIp = (subnet, last) => subnet.split('/')[0].replace(/\.\d+$/, '.' + last)
+
+/** Map "switch:port" -> link id, from the switch network's topology. */
+export function portToLink(netTopo) {
+  const m = {}
+  netTopo?.links?.forEach((l) => {
+    m[l.a] = l.id
+    m[l.b] = l.id
+  })
+  return m
+}
