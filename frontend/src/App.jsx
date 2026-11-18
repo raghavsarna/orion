@@ -70,7 +70,8 @@ export default function App() {
   const failMode = fail?.failMode
   const lines = caption({ netTopo, ctrlTopo, failMode, traffic })
   const ctx = { netTopo, ctrlTopo, status, act, toast, log }
-  const guide = scene && tab === 'walk' ? `${scene.section} ${scene.title}` : TABS.find((t) => t.id === tab).section
+  const live = failMode?.mode === 'FAIL_STATIC' ? '§3.2 Fail Static' : failMode?.mode === 'FAIL_CLOSED' ? '§3.2 Fail Closed' : null
+  const guide = scene && tab === 'walk' ? `${scene.section} ${scene.title}` : live || TABS.find((t) => t.id === tab).section
 
   return (
     <div className="app">
@@ -98,7 +99,8 @@ export default function App() {
               <div className="placeholder">{netErr ? 'The switch network is not answering. Is docker compose up running?' : 'Loading the network…'}</div>
             )}
             <figcaption>
-              <b>Figure 1:</b> <i>The network, live.</i> {lines.join(' ')}
+              <b>Figure 1:</b> <i>The network, live.</i>{' '}
+              {lines.map((p) => <span key={p.key} className="cap-part">{p.text} </span>)}
             </figcaption>
             <Key />
           </figure>
@@ -153,8 +155,8 @@ function Health({ ok, label }) {
 function Key() {
   return (
     <ul className="key" aria-label="Key">
-      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" rx="2" className="k-box" /></svg>healthy switch</li>
-      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" rx="2" className="k-box unknown" /></svg>unknown</li>
+      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" className="k-box" /></svg>healthy switch</li>
+      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" className="k-box unknown" /></svg>unknown</li>
       <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire" /></svg>link in NIB</li>
       <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire pending" /></svg>not in NIB</li>
       <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire down" /></svg>failed</li>

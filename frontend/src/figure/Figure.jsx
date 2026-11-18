@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState } from 'react'
 import { clearSaved, H, layout, loadSaved, storeSaved, W } from './layout.js'
 
-const BW = 76
-const BH = 48
+// sized for a projector: the figure is cropped to its content, so these render close to 1:1 at 1440 px
+const BW = 96
+const BH = 58
+const HOST = 98
 
 /**
  * Figure 1: the network as the paper draws it, live. Geometry comes from the switch network (what is physically
@@ -26,13 +28,28 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
   const focusLinks = new Set(focus?.links || [])
   const maxCount = Math.max(1, ...Object.values(traffic.links))
   const showLinkIds = netTopo.links.length <= 6
+  const showTiers = tiers.mid.length > 0 && tiers.top.length > 0
+
+  // crop the drawing to its content (frozen while dragging so the figure does not jump)
+  const lastBox = useRef(null)
+  const box = useMemo(() => {
+    if (drag && lastBox.current) return lastBox.current
+    const pts = Object.values(pos)
+    if (!pts.length) return [0, 0, W, H]
+    const x0 = Math.min(...pts.map((p) => p.x)) - (showTiers ? 175 : 110)
+    const x1 = Math.max(...pts.map((p) => p.x)) + 140
+    const y0 = Math.min(...pts.map((p) => p.y)) - 140
+    const y1 = Math.max(...pts.map((p) => p.y)) + 145
+    lastBox.current = [x0, y0, x1 - x0, y1 - y0]
+    return lastBox.current
+  }, [pos, drag, showTiers])
 
   const toSvg = (evt) => {
     const pt = svg.current.createSVGPoint()
     pt.x = evt.clientX
     pt.y = evt.clientY
     const p = pt.matrixTransform(svg.current.getScreenCTM().inverse())
-    return { x: Math.max(60, Math.min(W - 60, p.x)), y: Math.max(60, Math.min(H - 60, p.y)) }
+    return { x: Math.max(60, Math.min(W - 60, p.x)), y: Math.max(80, Math.min(H - 80, p.y)) }
   }
   const onDown = (evt, id) => {
     evt.stopPropagation()
@@ -61,14 +78,14 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
 
   return (
     <div className="figure-canvas">
-      <svg ref={svg} viewBox={`0 0 ${W} ${H}`} className="topology" onPointerMove={onMove} onPointerUp={onUp}
+      <svg ref={svg} viewBox={box.join(' ')} className="topology" onPointerMove={onMove} onPointerUp={onUp}
            onPointerDown={() => onSelect(null)} role="img"
            aria-label={`Network topology: ${netTopo.switches.length} switches, ${netTopo.links.length} links`}>
-        {tiers.mid.length > 0 && tiers.top.length > 0 && (
+        {showTiers && (
           <g className="tier-labels">
-            <text x="18" y={pos[tiers.top[0]]?.y + 5}>top</text>
-            <text x="18" y={pos[tiers.mid[0]]?.y + 5}>middle</text>
-            {tiers.bottom.length > 0 && <text x="18" y={pos[tiers.bottom[0]]?.y + 5}>bottom</text>}
+            <text x={box[0] + 10} y={pos[tiers.top[0]]?.y + 6}>top</text>
+            <text x={box[0] + 10} y={pos[tiers.mid[0]]?.y + 6}>middle</text>
+            {tiers.bottom.length > 0 && <text x={box[0] + 10} y={pos[tiers.bottom[0]]?.y + 6}>bottom</text>}
           </g>
         )}
 
@@ -98,20 +115,20 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
               )}
               {state === 'down' && (
                 <g className="cross" transform={`translate(${mx},${my})`}>
-                  <path d="M-8 -8L8 8M8 -8L-8 8" />
+                  <path d="M-10 -10L10 10M10 -10L-10 10" />
                 </g>
               )}
               {n > 0 && l.up && (
                 <g className="count" transform={`translate(${cx},${cy})`}>
-                  <rect x="-17" y="-12" width="34" height="24" rx="3" />
-                  <text textAnchor="middle" dy="5.5">{n}</text>
+                  <rect x="-27" y="-16" width="54" height="32" />
+                  <text textAnchor="middle" dy="7">{n}</text>
                 </g>
               )}
               {(showLinkIds || sel) && !n && state !== 'down' && (
-                <text className="link-id" x={mx} y={my - 8} textAnchor="middle">{l.id} · {l.latencyMs} ms</text>
+                <text className="link-id" x={mx} y={my - 10} textAnchor="middle">{l.id} · {l.latencyMs} ms</text>
               )}
               {sel && n > 0 && (
-                <text className="link-id" x={mx} y={my - 18} textAnchor="middle">{l.id} · {l.latencyMs} ms</text>
+                <text className="link-id" x={mx} y={my - 26} textAnchor="middle">{l.id} · {l.latencyMs} ms</text>
               )}
             </g>
           )
@@ -122,14 +139,14 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
           if (!p) return null
           const below = tierOf(s.id) === 'bottom'
           return s.hosts.map((h, i) => {
-            const hx = p.x + (i - (s.hosts.length - 1) / 2) * 130
-            const hy = below ? p.y + 78 : p.y - 78
+            const hx = p.x + (i - (s.hosts.length - 1) / 2) * 150
+            const hy = below ? p.y + HOST : p.y - HOST
             const n = traffic.hosts[`${s.id}:${h.port}`] || 0
             return (
               <g key={s.id + h.port} className={'host' + (n ? ' hot' : '')}>
-                <line x1={p.x} y1={below ? p.y + BH / 2 : p.y - BH / 2} x2={hx} y2={below ? hy - 13 : hy + 13} />
-                <text x={hx} y={hy + 5} textAnchor="middle">{h.subnet}</text>
-                {n > 0 && <text x={hx} y={below ? hy + 28 : hy - 20} textAnchor="middle" className="delivered">{n} delivered</text>}
+                <line x1={p.x} y1={below ? p.y + BH / 2 : p.y - BH / 2} x2={hx} y2={below ? hy - 16 : hy + 16} />
+                <text x={hx} y={hy + 6} textAnchor="middle">{h.subnet}</text>
+                {n > 0 && <text x={hx} y={below ? hy + 30 : hy - 24} textAnchor="middle" className="delivered">{n} delivered</text>}
               </g>
             )
           })
@@ -143,24 +160,24 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
           const sel = selected?.kind === 'switch' && selected.id === s.id
           const drops = traffic.drops[s.id] || 0
           const below = tierOf(s.id) === 'bottom'
-          const noteY = below ? -BH / 2 - 12 : BH / 2 + 38
+          const noteY = below ? -BH / 2 - 16 : BH / 2 + 50
           return (
             <g key={s.id} transform={`translate(${p.x},${p.y})`}
                className={`switch ${state}${sel ? ' sel' : ''}${focusSw.has(s.id) ? ' focus' : ''}`}
                onPointerDown={(e) => onDown(e, s.id)} tabIndex="0" role="button"
                aria-label={`switch ${s.id}, ${state}`}
                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect({ kind: 'switch', id: s.id })}>
-              {focusSw.has(s.id) && <rect className="ring" x={-BW / 2 - 9} y={-BH / 2 - 9} width={BW + 18} height={BH + 18} rx="4" />}
-              <rect className="box" x={-BW / 2} y={-BH / 2} width={BW} height={BH} rx="3" />
-              <text className="sid" textAnchor="middle" dy="7">{s.id}</text>
-              <text className="sname" textAnchor="middle" y={below ? BH / 2 + 20 : BH / 2 + 20}>{s.name}</text>
+              {focusSw.has(s.id) && <rect className="ring" x={-BW / 2 - 10} y={-BH / 2 - 10} width={BW + 20} height={BH + 20} />}
+              <rect className="box" x={-BW / 2} y={-BH / 2} width={BW} height={BH} />
+              <text className="sid" textAnchor="middle" dy="8">{s.id}</text>
+              <text className="sname" textAnchor="middle" y={BH / 2 + 30}>{s.name}</text>
               {state === 'unknown' && <text className="note bad" textAnchor="middle" y={noteY}>unknown</text>}
               {state === 'absent' && <text className="note" textAnchor="middle" y={noteY}>not in NIB</text>}
               {state === 'healthy' && !s.controlConnected && <text className="note" textAnchor="middle" y={noteY}>control cut</text>}
               {drops > 0 && (
                 <g className="drops" transform={`translate(${BW / 2 + 8},${-BH / 2})`}>
-                  <rect width="58" height="22" rx="3" />
-                  <text x="29" y="16" textAnchor="middle">{drops} drop</text>
+                  <rect width="92" height="28" />
+                  <text x="46" y="20" textAnchor="middle">{drops} dropped</text>
                 </g>
               )}
             </g>

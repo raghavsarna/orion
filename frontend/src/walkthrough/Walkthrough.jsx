@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ctrl, time, usePoll } from '../api.js'
 import { ArrowLeft, Check, LoaderCircle, Play, RotateCcw } from 'lucide-react'
 import { REQUIRED, SCENARIOS } from './scenarios.js'
 
@@ -7,15 +8,23 @@ import { REQUIRED, SCENARIOS } from './scenarios.js'
  * redraws), then the step's measured result is written under it.
  */
 export default function Walkthrough({ lab, netTopo, onScene, onFocus, showMatrix, addTrials, toast }) {
-  const [openId, setOpenId] = useState(null)
+  const [openId, setOpenId] = useState(() => {
+    try {
+      return localStorage.getItem('orion-walk') || 'failstatic'
+    } catch {
+      return 'failstatic'
+    }
+  })
   const [cursor, setCursor] = useState(0)
   const [runs, setRuns] = useState({})
   const [tick, setTick] = useState('')
   const [busy, setBusy] = useState(false)
   const scenario = SCENARIOS.find((s) => s.id === openId)
   const curRef = useRef(null)
+  const ran = useRef(false)
   useEffect(() => {
-    curRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    // only after a step ran: on first render this would scroll the whole page on a phone
+    if (ran.current) curRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [cursor, runs])
   const missing = netTopo ? REQUIRED.filter((id) => !netTopo.switches.some((s) => s.id === id)) : []
 
@@ -25,6 +34,11 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, showMatrix
   }, [openId, cursor]) // eslint-disable-line
 
   const open = (id) => {
+    try {
+      localStorage.setItem('orion-walk', id || '')
+    } catch {
+      /* remembered for this page only */
+    }
     setOpenId(id)
     setCursor(0)
     setRuns({})
@@ -33,6 +47,7 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, showMatrix
 
   const run = async (i) => {
     const step = scenario.steps[i]
+    ran.current = true
     setCursor(i)
     setBusy(true)
     setTick('')
@@ -93,7 +108,7 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, showMatrix
   return (
     <div className="walk">
       <div className="walk-head">
-        <button className="btn quiet" onClick={() => { setOpenId(null); showMatrix(false) }} disabled={busy}>
+        <button className="btn quiet" onClick={() => { open(null); showMatrix(false) }} disabled={busy}>
           <ArrowLeft size={16} /> All walkthroughs
         </button>
         <button className="btn quiet" onClick={reset} disabled={busy} title="Remove intents, repair links, reconnect switches, threshold 40%">
@@ -102,6 +117,7 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, showMatrix
       </div>
       <h2><span className="sec">{scenario.section}</span> {scenario.title}</h2>
       <p className="lede">{scenario.paper}</p>
+      {missing.length > 0 && <p className="warn">This walkthrough needs the demo fabric (config/topology.yaml); this network is missing {missing.join(', ')}.</p>}
       <ol className="steps">
         {scenario.steps.map((step, i) => {
           const r = runs[i]
@@ -121,7 +137,7 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, showMatrix
                   {r?.status === 'done' && <p className="result">{r.result}</p>}
                   {r?.status === 'error' && <p className="result bad">{r.result}</p>}
                   {current && r?.status !== 'running' && (
-                    <button className="btn primary" onClick={() => run(i)} disabled={busy}>
+                    <button className="btn primary" onClick={() => run(i)} disabled={busy || missing.length > 0}>
                       <Play size={16} /> {r ? 'Run again' : 'Run'}
                     </button>
                   )}
@@ -131,6 +147,26 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, showMatrix
           )
         })}
       </ol>
+      <RecentEvents />
     </div>
+  )
+}
+
+/** The last few NIB and controller events, so the class sees the version bump next to the step that caused it. */
+function RecentEvents() {
+  const [events] = usePoll(() => ctrl('/api/events?limit=5'), 1200)
+  return (
+    <table className="data">
+      <caption><b>Latest controller events,</b> newest first (full list in Log).</caption>
+      <tbody>
+        {(events || []).slice().reverse().map((e) => (
+          <tr key={e.seq}>
+            <td className="num">{time(e.time)}</td>
+            <td>{e.type.replace(/_/g, ' ').toLowerCase()}</td>
+            <td>{e.message}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
