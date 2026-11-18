@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 public final class TopologyManager {
 
     private static final Logger log = LoggerFactory.getLogger(TopologyManager.class);
+    /** How long a switch stays in unknown state with no neighbour able to vouch for it. */
+    static final long UNKNOWN_LIMIT_MS = 120_000;
 
     private final Nib nib;
     private final SwitchClient client;
@@ -178,7 +180,9 @@ public final class TopologyManager {
      * <ul>
      *   <li>any neighbour sees its link up -> it is probably still forwarding: keep it as DEAD (unknown state);</li>
      *   <li>neighbours answer and all say down -> unhealthy: remove it and its links from the topology;</li>
-     *   <li>no neighbour can answer (e.g. they lost the controller too) -> no signal either way: keep it unknown.</li>
+     *   <li>no neighbour can answer (e.g. they lost the controller too) -> no signal either way: keep it unknown,
+     *       for up to {@link #UNKNOWN_LIMIT_MS}; after that nothing vouches for it and it is removed (it re-registers
+     *       if it comes back).</li>
      * </ul>
      */
     private void checkNeighbours(SwitchView dead) {
@@ -206,6 +210,8 @@ public final class TopologyManager {
             log.info("Switch {} stays DEAD: {}", dead.id(), answers);
         } else if (anyDown || links == 0) {
             nib.remove(dead.id(), answers.isEmpty() ? "it has no links" : String.join(", ", answers));
+        } else if (System.currentTimeMillis() - dead.lastSeen() > UNKNOWN_LIMIT_MS) {
+            nib.remove(dead.id(), "no neighbour has vouched for it in " + UNKNOWN_LIMIT_MS / 1000 + " s");
         } else {
             log.info("Switch {} stays DEAD: no neighbour could answer", dead.id());
         }

@@ -79,7 +79,7 @@ figcaption b { font-weight: 600; }
 .placeholder { padding: 6rem 1rem; text-align: center; font: italic 1.1rem var(--serif); color: var(--ink-3); }
 .reset-layout { position: absolute; right: 0; top: 0; }
 
-.tier-labels text { font: italic 400 19px var(--serif); fill: var(--ink-3); }
+.tier-labels text { font: italic 400 calc(17px * var(--k, 1)) var(--serif); fill: var(--ink-3); }
 
 .link { cursor: pointer; }
 .link .hit { stroke: transparent; stroke-width: 18; }
@@ -89,21 +89,23 @@ figcaption b { font-weight: 600; }
 .link .cross path { stroke: var(--red); stroke-width: 3; stroke-linecap: round; }
 .link .flow { stroke: var(--blue); stroke-linecap: round; opacity: 0.85; transition: stroke-width 400ms cubic-bezier(0.16, 1, 0.3, 1); }
 .link .count rect { fill: var(--paper); stroke: var(--blue); stroke-width: 1.5; }
-.link .count text { font: 700 21px var(--sans); fill: var(--blue-ink); }
+.link .count text { font: 700 calc(20px * var(--k, 1)) var(--sans); fill: var(--blue-ink); }
 .link.sel .wire { stroke-width: 3; }
 .link.focus .wire { stroke: var(--blue); stroke-width: 2.6; stroke-dasharray: none; }
-.link-id { font: 600 16px var(--sans); fill: var(--ink-2); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
+.link-id { font: 600 calc(15px * var(--k, 1)) var(--sans); fill: var(--ink-2); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
 
 .host line { stroke: var(--ink); stroke-width: 1; }
-.host text { font: 600 18px var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
+.host text { font: 600 calc(17px * var(--k, 1)) var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
 .host.hot text { fill: var(--blue-ink); }
-.host .delivered { font: 700 16px var(--sans); fill: var(--blue-ink); }
+.host .delivered { font: 700 calc(16px * var(--k, 1)) var(--sans); fill: var(--blue-ink); }
 
 .switch { cursor: grab; outline: none; }
 .switch:active { cursor: grabbing; }
 .switch .box { fill: var(--paper); stroke: var(--ink); stroke-width: 2; transition: stroke 200ms ease-out, fill 200ms ease-out; }
-.switch .sid { font: 700 25px var(--sans); fill: var(--ink); }
-.switch .sname { font: italic 400 17px var(--serif); fill: var(--ink-2); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
+.switch .sid { font: 700 calc(22px * min(var(--k, 1), 1.2)) var(--sans); fill: var(--ink); }
+.switch .sub { font: 700 calc(14px * min(var(--k, 1), 1.25)) var(--sans); fill: var(--ink-2); }
+.switch .sub.bad { fill: var(--red); }
+.switch .sname { font: italic 400 calc(14px * min(var(--k, 1), 1.25)) var(--serif); fill: var(--ink-2); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
 .switch .note { font: 700 16px var(--sans); fill: var(--ink-3); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
 .switch .note.bad { fill: var(--red); }
 .switch.unknown .box { stroke: var(--red); stroke-dasharray: 7 5; fill: var(--fill); }
@@ -111,13 +113,14 @@ figcaption b { font-weight: 600; }
 .switch.absent .sid { fill: var(--ink-3); }
 .switch.sel .box { stroke: var(--blue); stroke-width: 3; stroke-dasharray: none; }
 .switch:focus-visible .box { stroke: var(--blue); stroke-width: 3; }
-.switch .ring { fill: none; stroke: var(--blue); stroke-width: 1.6; stroke-dasharray: 4 4; }
+.switch .ring { fill: none; stroke: var(--ink); stroke-width: 2.5; }
 .switch .drops rect { fill: var(--red-wash); stroke: var(--red); stroke-width: 1; }
-.switch .drops text { font: 700 16px var(--sans); fill: var(--red); }
+.switch .drops text { font: 700 calc(15px * var(--k, 1)) var(--sans); fill: var(--red); }
 
 .key { list-style: none; padding: 0; margin: 0.7rem 0 0; display: flex; flex-wrap: wrap; gap: 0.3rem 1.3rem; font-size: 0.82rem; color: var(--ink-2); }
 .key li { display: flex; align-items: center; gap: 0.4rem; }
 .k-box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; }
+.k-ring { fill: none; stroke: var(--ink); stroke-width: 2.5; }
 .k-box.unknown { stroke: var(--red); stroke-dasharray: 4 3; fill: var(--fill); }
 .k-wire { stroke: var(--ink); stroke-width: 1.4; }
 .k-wire.pending { stroke: var(--ink-3); stroke-dasharray: 2 4; }
@@ -125,6 +128,7 @@ figcaption b { font-weight: 600; }
 .k-flow { stroke: var(--blue); stroke-width: 5; stroke-linecap: round; }
 
 .show-matrix { margin-top: 1rem; }
+.scroll-hint { display: none; color: var(--ink-3); font-style: italic; }
 .mode-note { margin: 1rem 0 0; padding: 0.7rem 0 0; border-top: 1px solid var(--rule); font: 0.98rem/1.5 var(--serif); max-width: 75ch; }
 .mode-note b { color: var(--red); }
 
@@ -315,6 +319,8 @@ legend { font-size: 0.82rem; font-weight: 600; color: var(--ink-2); padding: 0; 
   .tabs button { padding-left: 0.45rem; padding-right: 0.45rem; font-size: 0.88rem; }
   .figure-canvas { overflow-x: auto; }
   .topology { min-width: 640px; }
+  .figure-canvas { -webkit-mask-image: linear-gradient(to right, #000 88%, transparent); mask-image: linear-gradient(to right, #000 88%, transparent); }
+  .scroll-hint { display: inline; }
   .scenario { grid-template-columns: 1fr auto; }
   .scenario .sec { grid-column: 1 / -1; }
   .bars li { grid-template-columns: 7rem 1fr 4rem; }

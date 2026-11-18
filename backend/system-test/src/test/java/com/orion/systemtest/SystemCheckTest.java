@@ -47,6 +47,8 @@ class SystemCheckTest {
         JsonNode topo = waitFor(() -> get(CTRL + "/api/topology"), t -> t.path("links").size() >= 3, 60);
         check("controller knows 3 switches and 3 links", topo != null && topo.path("switches").size() == 3, "");
         deleteAllIntents();
+        // the controller waits 8 s after start-up before its first push; wait for s1's baseline rules
+        waitUntil(() -> get(NET + "/switch/s1/flow").path("rules").size() > 0, 30);
         sleep(1);
         traffic(30, 50, Map.of());   // warm up the JVMs so latency measurements are not skewed by JIT compilation
 

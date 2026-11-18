@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { clearSaved, H, layout, loadSaved, storeSaved, W } from './layout.js'
 
 // sized for a projector: the figure is cropped to its content, so these render close to 1:1 at 1440 px
@@ -30,6 +30,9 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
   const showLinkIds = netTopo.links.length <= 6
   const showTiers = tiers.mid.length > 0 && tiers.top.length > 0
 
+  // k: how much to enlarge text so it renders near its intended pixel size however small the figure is drawn
+  const [k, setK] = useState(1)
+
   // crop the drawing to its content (frozen while dragging so the figure does not jump)
   const lastBox = useRef(null)
   const box = useMemo(() => {
@@ -43,6 +46,17 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
     lastBox.current = [x0, y0, x1 - x0, y1 - y0]
     return lastBox.current
   }, [pos, drag, showTiers])
+
+  useEffect(() => {
+    const el = svg.current
+    if (!el || typeof ResizeObserver === 'undefined') return undefined
+    const ro = new ResizeObserver(() => {
+      const scale = el.getBoundingClientRect().width / box[2]
+      if (scale > 0) setK(Math.min(1.45, Math.max(1, 1 / scale)))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [box[2]]) // eslint-disable-line
 
   const toSvg = (evt) => {
     const pt = svg.current.createSVGPoint()
@@ -78,7 +92,7 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
 
   return (
     <div className="figure-canvas">
-      <svg ref={svg} viewBox={box.join(' ')} className="topology" onPointerMove={onMove} onPointerUp={onUp}
+      <svg ref={svg} viewBox={box.join(' ')} className="topology" style={{ '--k': k }} onPointerMove={onMove} onPointerUp={onUp}
            onPointerDown={() => onSelect(null)} role="img"
            aria-label={`Network topology: ${netTopo.switches.length} switches, ${netTopo.links.length} links`}>
         {showTiers && (
@@ -120,8 +134,8 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
               )}
               {n > 0 && l.up && (
                 <g className="count" transform={`translate(${cx},${cy})`}>
-                  <rect x="-27" y="-16" width="54" height="32" />
-                  <text textAnchor="middle" dy="7">{n}</text>
+                  <rect x={-(10 + 6.5 * String(n).length) * k} y={-15 * k} width={(20 + 13 * String(n).length) * k} height={30 * k} />
+                  <text textAnchor="middle" dy={7 * k}>{n}</text>
                 </g>
               )}
               {(showLinkIds || sel) && !n && state !== 'down' && (
@@ -146,7 +160,7 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
               <g key={s.id + h.port} className={'host' + (n ? ' hot' : '')}>
                 <line x1={p.x} y1={below ? p.y + BH / 2 : p.y - BH / 2} x2={hx} y2={below ? hy - 16 : hy + 16} />
                 <text x={hx} y={hy + 6} textAnchor="middle">{h.subnet}</text>
-                {n > 0 && <text x={hx} y={below ? hy + 30 : hy - 24} textAnchor="middle" className="delivered">{n} delivered</text>}
+                {n > 0 && <text x={hx} y={below ? hy + 26 * k : hy - 22 * k} textAnchor="middle" className="delivered">{n} delivered</text>}
               </g>
             )
           })
@@ -160,20 +174,20 @@ export default function Figure({ netTopo, ctrlTopo, traffic, selected, onSelect,
           const sel = selected?.kind === 'switch' && selected.id === s.id
           const drops = traffic.drops[s.id] || 0
           const below = tierOf(s.id) === 'bottom'
-          const noteY = below ? -BH / 2 - 16 : BH / 2 + 50
           return (
             <g key={s.id} transform={`translate(${p.x},${p.y})`}
                className={`switch ${state}${sel ? ' sel' : ''}${focusSw.has(s.id) ? ' focus' : ''}`}
                onPointerDown={(e) => onDown(e, s.id)} tabIndex="0" role="button"
                aria-label={`switch ${s.id}, ${state}`}
                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect({ kind: 'switch', id: s.id })}>
-              {focusSw.has(s.id) && <rect className="ring" x={-BW / 2 - 10} y={-BH / 2 - 10} width={BW + 20} height={BH + 20} />}
+              {focusSw.has(s.id) && <rect className="ring" x={-BW / 2 - 8} y={-BH / 2 - 8} width={BW + 16} height={BH + 16} />}
               <rect className="box" x={-BW / 2} y={-BH / 2} width={BW} height={BH} />
-              <text className="sid" textAnchor="middle" dy="8">{s.id}</text>
-              <text className="sname" textAnchor="middle" y={BH / 2 + 30}>{s.name}</text>
-              {state === 'unknown' && <text className="note bad" textAnchor="middle" y={noteY}>unknown</text>}
-              {state === 'absent' && <text className="note" textAnchor="middle" y={noteY}>not in NIB</text>}
-              {state === 'healthy' && !s.controlConnected && <text className="note" textAnchor="middle" y={noteY}>control cut</text>}
+              <text className="sid" textAnchor="middle" y={-4}>{s.id}</text>
+              {/* second line inside the box: the switch's state when it matters, otherwise its name */}
+              {state === 'unknown' ? <text className="sub bad" textAnchor="middle" y={19}>unknown</text>
+                : state === 'absent' ? <text className="sub" textAnchor="middle" y={19}>not in NIB</text>
+                  : !s.controlConnected ? <text className="sub" textAnchor="middle" y={19}>control cut</text>
+                    : <text className="sname" textAnchor="middle" y={19}>{s.name}</text>}
               {drops > 0 && (
                 <g className="drops" transform={`translate(${BW / 2 + 8},${-BH / 2})`}>
                   <rect width="92" height="28" />

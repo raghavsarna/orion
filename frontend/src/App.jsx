@@ -100,6 +100,7 @@ export default function App() {
             )}
             <figcaption>
               <b>Figure 1:</b> <i>The network, live.</i>{' '}
+              <span className="scroll-hint">Scroll the figure sideways. </span>
               {lines.map((p) => <span key={p.key} className="cap-part">{p.text} </span>)}
             </figcaption>
             <Key />
@@ -161,6 +162,7 @@ function Key() {
       <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire pending" /></svg>not in NIB</li>
       <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire down" /></svg>failed</li>
       <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-flow" /></svg>packets, last 6 s</li>
+      <li><svg width="30" height="20"><rect x="2" y="2" width="26" height="16" className="k-ring" /></svg>subject of this step</li>
     </ul>
   )
 }
