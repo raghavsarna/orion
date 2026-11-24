@@ -32,7 +32,8 @@ simulator, and each one maps to a named section of the paper.
 - Runs locally with `docker compose up`; UI at http://localhost:3000.
 
 ## Capabilities and Constraints
-- Topologies: a Clos fabric shaped like the paper's Figure 1 (default) and a 3-switch triangle (system test).
+- Topologies: a 5-switch ring for the demo scenarios (default), a Clos fabric shaped like the paper's Figure 1, and a
+  3-switch triangle (system test).
 - Intents: AVOID_LINK, MAX_LATENCY, BLOCK_TRAFFIC, BLOCK_PROTOCOL, ISOLATE_GROUPS, RATE_LIMIT, optional time windows;
   NOT_POSSIBLE with a reason when the network cannot satisfy one.
 - Simulated link latency is reported as path latency (sum of configured link latencies); wall-clock timing on Docker

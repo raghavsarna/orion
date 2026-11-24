@@ -14,7 +14,7 @@ Then open http://localhost:3000. The presenter's script is in [docs/DEMO.md](doc
 
 | Service | URL | What it is |
 |---|---|---|
-| UI | http://localhost:3000 | Figure 1 (the live network), walkthroughs, intents, inspect, measure, log |
+| UI | http://localhost:3000 | the live network with its controller, step-by-step scenarios, intents, inspect, measure, log |
 | Controller | http://localhost:8181 | Topology Manager (NIB), Intent Manager, southbound and northbound APIs |
 | Switch network | http://localhost:9191 | one container, one thread per switch |
 | PostgreSQL | localhost:5433 | db, user and password are all `orion` |
@@ -23,11 +23,13 @@ Stop with `docker compose down`. Add `-v` to also delete the database. If a port
 
 ### Topologies
 
-The default, [config/topology.yaml](config/topology.yaml), is a Clos fabric shaped like Figure 1 of the paper: top switches t1 and t2, middle switches m1 to m4, bottom switches b1 and b2, 16 links. The original 3-switch triangle is in [config/topology-triangle.yaml](config/topology-triangle.yaml):
+The default, [config/topology.yaml](config/topology.yaml), is five switches in a ring, small enough to follow at a glance. A (hosts 10.0.1.x) and B (hosts 10.0.2.x) are joined by a short route through E and a long route through C and D. The demo scenarios use it. Two other topologies are included:
 
 ```bash
-ORION_TOPOLOGY=topology-triangle.yaml docker compose up --build
+ORION_TOPOLOGY=topology-fabric.yaml docker compose up --build
 ```
+
+starts an 8-switch fabric shaped like Figure 1 of the paper, and `ORION_TOPOLOGY=topology-triangle.yaml` starts the 3-switch triangle that the end-to-end checks use.
 
 Edit a topology file, then `docker compose restart switch-network` to load it.
 
@@ -79,7 +81,7 @@ Docker Desktop on macOS oversleeps timers by up to about 100 ms, so wall-clock p
 
 ```
 docker-compose.yml        runs everything (plus the system-test and benchmark profiles)
-config/                   topology.yaml (fabric), topology-triangle.yaml
+config/                   topology.yaml (5-switch ring), topology-fabric.yaml, topology-triangle.yaml
 docs/                     ORION_DESIGN.md, IMPLEMENTATION_PLAN.md, DEMO.md
 backend/                  Java 21, Maven
   shared/                 packet, flow rule (match, action incl. ECMP), switch-controller messages
@@ -88,8 +90,8 @@ backend/                  Java 21, Maven
                           metrics/ (convergence), storage/ (PostgreSQL), communication/ (REST)
   system-test/            end-to-end checks and the convergence benchmark
 frontend/src/             React (Vite), served by nginx, which proxies /ctrl and /net
-  figure/                 Figure 1 (topology), its caption, the NIB matrix
-  walkthrough/            guided walkthroughs and the experiments they run
+  figure/                 the live network drawing, its caption, the controller's map as a table
+  walkthrough/            the demo scenarios and the actions they run
   panels/                 Intents, Inspect, Measure, Log
 ```
 

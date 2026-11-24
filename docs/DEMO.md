@@ -1,64 +1,66 @@
 # Demo script
 
-A presenter's script for the live part of the talk. It takes about 8 minutes at a normal pace. Every number the class sees is measured on the running system, so the exact values will differ from the ones quoted here.
+The live part of the talk: six short scenarios, about 7 minutes in total. Each scenario is a few steps. Press the blue button, watch the network change, then read the one-line result.
 
 ## Before the talk
 
-1. Start Docker Desktop, then run `docker compose up --build` in the repository root. Wait until http://localhost:3000 shows eight switches in Figure 1.
-2. Open the Walkthrough tab and press **Restore the network**. This removes intents, repairs links, reconnects switches and sets the Fail Static threshold to 40%.
-3. Do one warm-up run of any walkthrough step. The first packets after a cold start are slower while Java compiles its hot code.
-4. Set the projector to mirror the laptop at 1920×1080 or 1280×720. The page is designed for a white screen in a lit room.
+1. Start Docker Desktop, then run `docker compose up --build` in the project folder.
+2. Open http://localhost:3000 and wait until the drawing shows the controller and switches A to E.
+3. Press **Restore the network** under the scenario list.
+4. Run scenario 1 once as a warm-up, then press **Restore the network** again.
 
-If something goes wrong mid-talk, press **Restore** at the top of the open walkthrough and run the step again.
+If something looks wrong during the talk, go back to **All scenarios**, press **Restore the network**, and run the scenario again.
 
-## What is on screen
+## The picture
 
-The left side is Figure 1, the network drawn the way the paper draws its Figure 1: two top switches (t1, t2), four middle switches (m1 to m4), two bottom switches (b1, b2). Each top and bottom switch holds one host subnet. The caption under the figure is rewritten from live data every second.
+- **The black box at the top is the controller.** The thin dotted lines are its connections to each switch. Click it to see what it knows.
+- **A and B have hosts:** 10.0.1.x and 10.0.2.x. Packets in the demo go from A to B.
+- **There are two routes from A to B:** the short one through E, and the long one through C and D.
+- **The blue line with moving arrows** is the route the last packet took.
+- **A red dashed connection with a cross** means that switch lost contact with the controller.
+- **A red dashed link with a cross** means the wire is cut.
 
-| Mark | Meaning |
-|---|---|
-| Solid box | Healthy switch: it answers the controller's probes |
-| Red dashed box, "unknown" | The controller lost contact, but neighbours still see its links up |
-| Thin black line | Link present in the controller's NIB |
-| Dotted line | Link exists in the network but the NIB does not know it yet |
-| Red dashed line with a cross | Failed link |
-| Blue stroke with a number | Packets that crossed this link in the last 6 seconds |
+## 1. The long way round (about 1 minute)
 
-The running head at the top shows which section of the paper is on screen.
+1. **Give the instruction.** The controller is told not to use the A–E link. Say: "We tell the controller what we want, not how to do it."
+2. **Send packets.** They take A → C → D → B.
 
-## 1. Fail Static and Fail Closed (§3.2), about 3 minutes
+## 2. Change the intent (about 1 minute)
 
-This is the main result. Open **Fail Static and Fail Closed**.
+1. **Change the instruction.** The A–E link is allowed again.
+2. **Send packets.** They take the short route A → E → B. Say: "We only changed the instruction. The controller worked out the new routes and updated the switches."
 
-1. **Normal.** Press Run. Forty flows from t1 to b1 spread over all four middle switches, about 20 each. Say: "Every top-to-bottom path is two hops, so t1 holds one rule with four next hops. This is ECMP, and it is the left panel of the paper's Figure 1."
-2. **m1 loses its controller connection.** Press Run and wait about 10 seconds while the controller misses 3 probes. m1 turns red and dashed. Avoiding it costs 25% of link capacity, which is under the 40% threshold, so the controller routes around it. This is Fail Closed. Traffic now uses m2, m3 and m4.
-3. **m2 too.** Avoiding both would cost 50% of capacity, over the threshold. The controller stops reacting and keeps sending traffic through both unknown switches on the rules they already have. This is Fail Static, the right panel of the paper's figure. All packets still arrive.
-4. **Raise the threshold to 60%.** The same situation is now under the threshold, so the controller routes around both.
-5. **Every switch loses the controller.** All eight go unknown. The controller fails static, and traffic still flows. Say: "The control plane and the data plane do not share fate. A controller outage does not take the network down."
-6. **Reconnect everything.**
+## 3. A link breaks (about 1 minute)
 
-## 2. Intents (§3.1, §3.3), about 2 minutes
+1. **Cut the wire** between E and B. The link turns red. E and B tell the controller straight away, and it updates the routes in about a quarter of a second.
+2. **Send packets.** They go around the break: A → C → D → B.
+3. **Repair and send.** The short route comes back.
 
-Open **Intents: say what, not how**.
+## 4. Add and remove a switch (about 1 minute)
 
-1. **Under 5 ms.** The controller finds the path through m1 (4 ms) and installs path rules that outrank the multipath baseline. All traffic now takes m1.
-2. **Drain t1m1.** With that link avoided, the fastest path is 6 ms, so the latency intent becomes NOT POSSIBLE, with the reason shown. It stays stored and comes back once the drain is removed.
-3. **Block SSH.** SSH is dropped at t1, where it enters the network. HTTP still arrives.
-4. **Remove the intents.** The rules go back to the baseline.
+1. **Plug in F** next to D. F introduces itself and the controller now knows 6 switches.
+2. **Send packets** to F's hosts. The route A → C → D → F was already set up.
+3. **Unplug F.** F turns grey: the controller still lists it until F misses 3 check-ins (the controller checks every 3 seconds). Then it is removed.
 
-## 3. Convergence (§4.2, §6), about 2 minutes
+## 5. A switch loses contact (about 2 minutes)
 
-Open **Loss-free sequencing and convergence**, or the Measure tab.
+This is the paper's Fail Static idea.
 
-1. **Measure one link failure.** A 200 packets/s flow loses its link. The result splits the recovery into detection, the controller's queue, computing rules and programming switches. Programming happens in rounds, nearest the destination first, so no switch forwards onto a path that is not ready.
-2. **Repeat five times.** Table 1 in the Measure tab fills with the trials. Typical numbers on a laptop: detection under 30 ms, control plane about 230 to 270 ms, of which 200 ms is the deliberate window that batches bursts of events into one recomputation. Computing rules takes 1 to 3 ms.
+1. **Cut E off.** Only E's connection to the controller breaks; E itself keeps working. After about 10 seconds the controller assumes E has failed and sends traffic around it: A → C → D → B. Say: "When it is cheap to avoid a switch it cannot see, the controller plays safe. That is Fail Closed."
+2. **Cut C off too.** Going around both C and E would cut A off from B. The controller stops reacting and keeps the routes it already had, so traffic still flows A → E → B. Say: "When avoiding them would do more harm than good, it keeps what it had. That is Fail Static. It works because a switch that lost contact usually still forwards packets."
+3. **Reconnect.**
 
-Be honest about scale: this is one machine with simulated switches, not Google's fleet.
+## 6. A packet with no rule (about 1 minute)
+
+1. **Delete the rule.** E forgets where to send packets for B.
+2. **Send one packet.** E has no rule, so it sends the packet to the controller; the line from E to the controller turns blue. The controller tells E where to send it and gives E the rule back.
+3. **Send another packet.** It goes straight through. E did not need to ask.
 
 ## Optional extras
 
-- **The NIB (§4.1).** The first walkthrough shows the adjacency matrix (Figure 2) and a link failure travelling through the NIB to its subscriber.
-- **Inspect.** Click a switch to see its flow table. The ECMP rule shows `ports 1, 2, 3, 4`. Deleting a rule by hand sends the next packet to the controller (Packet-In), and the periodic safety check reinstalls the rule.
+- **The Intents tab** lists the instructions given to the controller and lets you write your own, for example "from 10.0.1.0/24 block SSH".
+- **The Measure tab** times how long the controller takes to react to a cut link, as in the paper's evaluation.
+- **The paper's own Figure 1** can be shown with `ORION_TOPOLOGY=topology-fabric.yaml docker compose up --build`. The scenarios need the default ring, though.
 
 ## Command-line evidence for the slides
 
@@ -73,4 +75,4 @@ ORION_TOPOLOGY=topology-triangle.yaml docker compose up -d --build
 docker compose --profile test run --rm system-test
 ```
 
-These run the 28 end-to-end checks on the triangle topology. Run `docker compose up -d --build` afterwards to return to the fabric.
+These run the 28 end-to-end checks on the triangle topology. Run `docker compose up -d --build` afterwards to return to the demo ring.

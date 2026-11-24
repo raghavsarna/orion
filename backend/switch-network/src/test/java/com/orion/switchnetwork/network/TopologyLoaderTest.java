@@ -45,9 +45,12 @@ class TopologyLoaderTest {
         TopologyFile triangle = loader.load(Path.of("../../config/topology-triangle.yaml"));
         assertEquals(3, triangle.switches().size());
         assertEquals(3, triangle.links().size());
-        TopologyFile fabric = loader.load(Path.of("../../config/topology.yaml"));
+        TopologyFile fabric = loader.load(Path.of("../../config/topology-fabric.yaml"));
         assertEquals(8, fabric.switches().size());
         assertEquals(16, fabric.links().size());
+        TopologyFile ring = loader.load(Path.of("../../config/topology.yaml"));
+        assertEquals(5, ring.switches().size());
+        assertEquals(5, ring.links().size());
     }
 
     @Test

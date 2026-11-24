@@ -24,7 +24,18 @@ function spread(ids, y, out, offset = 0) {
   })
 }
 
+/** Hand-placed positions for the demo ring (config/topology.yaml) and the switch F the demo adds. */
+const RING = {
+  A: { x: 150, y: 340 }, C: { x: 380, y: 190 }, D: { x: 640, y: 190 },
+  B: { x: 870, y: 340 }, E: { x: 510, y: 480 }, F: { x: 880, y: 130 },
+}
+
 export function layout(switches, saved) {
+  if (switches.length && switches.every((s) => RING[s.id])) {
+    const pos = {}
+    switches.forEach((s) => (pos[s.id] = saved[s.id] || RING[s.id]))
+    return { pos, tiers: { top: [], mid: [], bottom: [] } }
+  }
   const t = tiers(switches)
   const out = {}
   const lonely = t.top.length <= 1 && t.mid.length <= 1 && t.bottom.length <= 1

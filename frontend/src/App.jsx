@@ -12,7 +12,7 @@ import Measure from './panels/Measure.jsx'
 import Log from './panels/Log.jsx'
 
 const TABS = [
-  { id: 'walk', title: 'Walkthrough', section: '§4 Architecture' },
+  { id: 'walk', title: 'Scenarios', section: 'A live demo of the Orion paper' },
   { id: 'intents', title: 'Intents', section: '§3.1 Intent-based management' },
   { id: 'inspect', title: 'Inspect', section: '§4.1 Orion Core' },
   { id: 'measure', title: 'Measure', section: '§6 Evaluation' },
@@ -68,10 +68,10 @@ export default function App() {
 
   const traffic = useMemo(() => summarise(log.entries, netTopo, now), [log.entries, netTopo, now])
   const failMode = fail?.failMode
-  const lines = caption({ netTopo, ctrlTopo, failMode, traffic })
+  const lines = caption({ netTopo, ctrlTopo, failMode, traffic, now })
   const ctx = { netTopo, ctrlTopo, status, act, toast, log }
   const live = failMode?.mode === 'FAIL_STATIC' ? '§3.2 Fail Static' : failMode?.mode === 'FAIL_CLOSED' ? '§3.2 Fail Closed' : null
-  const guide = scene && tab === 'walk' ? `${scene.section} ${scene.title}` : live || TABS.find((t) => t.id === tab).section
+  const guide = scene && tab === 'walk' ? `${scene.title} (paper ${scene.section})` : live || TABS.find((t) => t.id === tab).section
 
   return (
     <div className="app">
@@ -82,10 +82,10 @@ export default function App() {
           <Health ok={!ctrlErr && ctrlTopo} label="controller" />
           <Health ok={!netErr && netTopo} label="switches" />
           <Health ok={status?.databaseReady} label="database" />
-          <div><dt>NIB</dt><dd className="num">v{ctrlTopo?.version ?? '–'}</dd></div>
+          <div><dt>map</dt><dd className="num">v{ctrlTopo?.version ?? '–'}</dd></div>
           <div className={failMode && failMode.mode !== 'NORMAL' ? 'alert' : ''}>
-            <dt>Unknown switches</dt>
-            <dd>{!failMode ? '–' : failMode.mode === 'NORMAL' ? 'none' : failMode.mode === 'FAIL_STATIC' ? 'Fail Static' : 'Fail Closed'}</dd>
+            <dt>lost contact</dt>
+            <dd>{!failMode ? '–' : failMode.mode === 'NORMAL' ? 'none' : `${failMode.unknown.join(', ')} (${failMode.mode === 'FAIL_STATIC' ? 'Fail Static' : 'Fail Closed'})`}</dd>
           </div>
         </dl>
       </header>
@@ -94,7 +94,7 @@ export default function App() {
         <section className="paper" aria-label="Figures">
           <figure className="fig1">
             {netTopo ? (
-              <Figure netTopo={netTopo} ctrlTopo={ctrlTopo} traffic={traffic} selected={selected} onSelect={select} focus={focus} />
+              <Figure netTopo={netTopo} ctrlTopo={ctrlTopo} traffic={traffic} selected={selected} onSelect={select} focus={focus} now={now} />
             ) : (
               <div className="placeholder">{netErr ? 'The switch network is not answering. Is docker compose up running?' : 'Loading the network…'}</div>
             )}
@@ -108,11 +108,11 @@ export default function App() {
           {matrix && ctrlTopo && (
             <figure className="fig2">
               <Matrix ctrlTopo={ctrlTopo} />
-              <figcaption><b>Figure 2:</b> <i>The NIB as an adjacency matrix.</i> Row and column per switch; a cell names the link between them. Version {ctrlTopo.version}.
+              <figcaption><b>Figure 2:</b> <i>The controller's map as a table.</i> One row and one column per switch; a cell names the link between them. Version {ctrlTopo.version}.
                 {' '}<button className="link-btn" onClick={() => setMatrix(false)}>Hide</button></figcaption>
             </figure>
           )}
-          {!matrix && ctrlTopo && <button className="link-btn show-matrix" onClick={() => setMatrix(true)}>Show the NIB as an adjacency matrix (Figure 2)</button>}
+          {!matrix && ctrlTopo && <button className="link-btn show-matrix" onClick={() => setMatrix(true)}>Show the controller's map as a table (Figure 2)</button>}
         </section>
 
         <aside className="side">
@@ -124,8 +124,7 @@ export default function App() {
             ))}
           </nav>
           <div className="pane" hidden={tab !== 'walk'}>
-            <Walkthrough lab={lab} netTopo={netTopo} onScene={setScene} onFocus={setFocus} showMatrix={setMatrix}
-                         addTrials={(t) => setTrials((x) => [...x, ...t])} toast={toast} />
+            <Walkthrough lab={lab} netTopo={netTopo} onScene={setScene} onFocus={setFocus} toast={toast} />
           </div>
           <div className="pane" hidden={tab !== 'intents'}><Intents ctx={ctx} /></div>
           <div className="pane" hidden={tab !== 'inspect'}><Inspect ctx={ctx} selected={selected} onSelect={select} /></div>
@@ -156,13 +155,12 @@ function Health({ ok, label }) {
 function Key() {
   return (
     <ul className="key" aria-label="Key">
-      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" className="k-box" /></svg>healthy switch</li>
-      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" className="k-box unknown" /></svg>unknown</li>
-      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire" /></svg>link in NIB</li>
-      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire pending" /></svg>not in NIB</li>
-      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire down" /></svg>failed</li>
-      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-flow" /></svg>packets, last 6 s</li>
-      <li><svg width="30" height="20"><rect x="2" y="2" width="26" height="16" className="k-ring" /></svg>subject of this step</li>
+      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" className="k-box" /></svg>switch</li>
+      <li><svg width="30" height="20"><rect x="3" y="3" width="24" height="14" className="k-box unknown" /></svg>no contact with controller</li>
+      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire" /></svg>link</li>
+      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-wire down" /></svg>cut link</li>
+      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-ctl" /></svg>controller connection</li>
+      <li><svg width="30" height="20"><line x1="2" y1="10" x2="28" y2="10" className="k-flow" /></svg>last packet's route</li>
     </ul>
   )
 }

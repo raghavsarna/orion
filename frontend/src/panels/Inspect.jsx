@@ -13,6 +13,7 @@ const PRESETS = {
 export default function Inspect({ ctx, selected, onSelect }) {
   const sw = selected?.kind === 'switch' && ctx.netTopo?.switches.find((s) => s.id === selected.id)
   const link = selected?.kind === 'link' && ctx.netTopo?.links.find((l) => l.id === selected.id)
+  if (selected?.kind === 'controller') return <ControllerView ctx={ctx} />
   if (sw) return <SwitchView key={sw.id} sw={sw} ctx={ctx} onSelect={onSelect} />
   if (link) return <LinkView key={link.id} link={link} ctx={ctx} onSelect={onSelect} />
   return (
@@ -20,6 +21,31 @@ export default function Inspect({ ctx, selected, onSelect }) {
       <p className="lede">Select a switch or a link in Figure 1 to see its flow table, send traffic, cut its controller connection or fail it. Drag switches to rearrange the figure.</p>
       <AddSwitch ctx={ctx} />
       <AddLink ctx={ctx} />
+    </div>
+  )
+}
+
+/** What the controller currently believes, in plain words. */
+function ControllerView({ ctx }) {
+  const t = ctx.ctrlTopo
+  if (!t) return <p className="lede">The controller is not answering.</p>
+  return (
+    <div className="inspect">
+      <h2>Controller</h2>
+      <p className="lede">The controller keeps a map of the network, decides every route, and writes the rules into the switches. It checks on every switch every 3 seconds.</p>
+      <table className="data">
+        <caption><b>Its map right now</b> (version {t.version}).</caption>
+        <thead><tr><th>switch</th><th>contact</th><th>links</th></tr></thead>
+        <tbody>
+          {t.switches.map((s) => (
+            <tr key={s.id}>
+              <td>{s.id}</td>
+              <td className={s.status === 'DEAD' ? 'bad' : ''}>{s.status === 'DEAD' ? 'lost' : 'ok'}</td>
+              <td>{t.links.filter((l) => l.fromSwitch === s.id || l.toSwitch === s.id).map((l) => l.linkId).join(', ') || 'none'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }

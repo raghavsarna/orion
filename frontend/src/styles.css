@@ -328,3 +328,59 @@ legend { font-size: 0.82rem; font-weight: 600; color: var(--ink-2); padding: 0; 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
+
+/* ---------- simple demo: controller, management lines, packet route ---------- */
+
+.mgmt .ctl-wire { stroke: #b9b9b9; stroke-width: 1.5; stroke-dasharray: 3 6; fill: none; }
+.mgmt .drop.cut .ctl-wire { stroke: var(--red); stroke-width: 2; stroke-dasharray: 8 6; }
+.mgmt .ctl-x { stroke: var(--red); stroke-width: 3; stroke-linecap: round; fill: none; }
+.mgmt .drop.ask .ctl-wire { stroke: var(--blue); stroke-width: 3.5; stroke-dasharray: 10 8; animation: march 0.8s linear infinite reverse; }
+.mgmt .drop.ghost .ctl-wire { stroke: var(--rule); }
+.ctl-note { font: 700 calc(15px * var(--k, 1)) var(--sans); fill: var(--blue-ink); paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
+.controller { cursor: pointer; outline: none; }
+.controller .box { fill: var(--ink); stroke: var(--ink); stroke-width: 2; }
+.controller .ctl-name { font: 700 calc(21px * min(var(--k, 1), 1.2)) var(--sans); fill: #fff; }
+.controller .ctl-sub { font: italic 400 calc(14px * min(var(--k, 1), 1.2)) var(--serif); fill: #d6d6d6; }
+.controller.sel .box { stroke: var(--blue); stroke-width: 4; }
+.controller:focus-visible .box { stroke: var(--blue); stroke-width: 4; }
+.controller .ring { fill: none; stroke: var(--ink); stroke-width: 2.5; }
+
+.switch.ghost .box { stroke: var(--ink-3); stroke-dasharray: 3 5; fill: var(--fill); }
+.switch.ghost .sid { fill: var(--ink-3); }
+.link.ghost .wire { stroke: var(--ink-3); stroke-dasharray: 3 6; }
+
+.host rect { fill: var(--paper); stroke: var(--ink); stroke-width: 1; }
+.host.hot rect { stroke: var(--blue); stroke-width: 2; }
+
+.route-line {
+  fill: none; stroke: var(--blue); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 18 12; animation: march 0.9s linear infinite; opacity: 0.9;
+}
+.route.failed .route-line { stroke: var(--red); }
+.arrow-head { fill: var(--blue); }
+.route.failed .arrow-head { fill: var(--red); }
+@keyframes march { to { stroke-dashoffset: -30; } }
+
+.k-ctl { stroke: #9a9a9a; stroke-width: 1.5; stroke-dasharray: 3 4; }
+
+/* scenario list and one-step stage */
+.walk .scenario { grid-template-columns: 2.4rem 1fr; padding: 0.9rem 0.2rem; }
+.scenario .num, .walk h2 .num {
+  display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%;
+  background: var(--ink); color: #fff; font: 700 1rem var(--sans);
+}
+.walk h2 .num { vertical-align: 0.15em; margin-right: 0.35rem; }
+.scenario .t { font: 600 1.15rem var(--serif); display: flex; flex-direction: column; gap: 0.15rem; }
+.scenario .b { font: 400 0.92rem var(--sans); color: var(--ink-2); }
+.paper-tag { font: italic 0.9rem var(--serif); color: var(--ink-3); align-self: center; }
+.dots { list-style: none; padding: 0; margin: 0.6rem 0 1.4rem; display: flex; align-items: center; gap: 0.45rem; }
+.dots li:not(.dots-label) { width: 0.8rem; height: 0.8rem; border-radius: 50%; border: 1.5px solid var(--ink-3); }
+.dots li.cur { border-color: var(--ink); background: var(--ink); }
+.dots li.done { border-color: var(--blue); background: var(--blue); }
+.dots-label { margin-left: 0.5rem; font-size: 0.9rem; color: var(--ink-3); }
+.stage { border-top: 2px solid var(--ink); padding-top: 1.2rem; animation: settle 360ms cubic-bezier(0.16, 1, 0.3, 1); }
+.say { font: 600 1.3rem/1.4 var(--serif); margin: 0 0 1.2rem; max-width: 34ch; }
+.stage .result { font: 1.12rem/1.55 var(--serif); margin: 0 0 1.2rem; max-width: 46ch; }
+.stage .result .ok { color: var(--blue); vertical-align: -0.2em; }
+.stage .tick { margin-top: 0.9rem; }
+.btn.big { font-size: 1.05rem; padding: 0.8em 1.2em; }

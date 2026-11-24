@@ -1,0 +1,68 @@
+# Optional topology: a small Clos fabric shaped like Figure 1 of the Orion paper.
+# Start with: ORION_TOPOLOGY=topology-fabric.yaml docker compose up --build
+# The switch network reads this file at startup. Each switch tells the controller its part when it registers.
+#
+#   top tier     t1 (10.0.1.0/24)   t2 (10.0.2.0/24)
+#                    \  \  /  /   every top switch links to every middle switch
+#   middle tier  m1   m2   m3   m4     (spines: no hosts, they only carry traffic)
+#                    /  /  \  \   every middle switch links to every bottom switch
+#   bottom tier  b1 (10.0.3.0/24)   b2 (10.0.4.0/24)
+#
+# Every top-to-bottom path is 2 hops, so baseline routing spreads flows over all four middle switches (ECMP).
+# Spine latencies differ (m1 fastest, m4 slowest) so latency intents have a real choice to make.
+#
+# The original 3-switch triangle is in topology-triangle.yaml:  ORION_TOPOLOGY=topology-triangle.yaml docker compose up
+#
+#   switches: id, name, number of ports, and host subnets attached to ports
+#   links:    a wire between two switch ports ("switchId:port"), with its travel time in ms
+# A port can be used by one link or one host subnet, not both.
+
+controller:
+  url: http://localhost:8181        # overridden by the CONTROLLER_URL env var (docker-compose sets it)
+  authToken: orion-secret-token
+
+switches:
+  - id: t1
+    name: pod-a
+    ports: 5
+    hosts:
+      - { port: 5, subnet: 10.0.1.0/24 }
+  - id: t2
+    name: pod-b
+    ports: 5
+    hosts:
+      - { port: 5, subnet: 10.0.2.0/24 }
+  - { id: m1, name: spine-1, ports: 4 }
+  - { id: m2, name: spine-2, ports: 4 }
+  - { id: m3, name: spine-3, ports: 4 }
+  - { id: m4, name: spine-4, ports: 4 }
+  - id: b1
+    name: pod-c
+    ports: 5
+    hosts:
+      - { port: 5, subnet: 10.0.3.0/24 }
+  - id: b2
+    name: pod-d
+    ports: 5
+    hosts:
+      - { port: 5, subnet: 10.0.4.0/24 }
+
+links:
+  # top tier <-> middle tier
+  - { id: t1m1, a: "t1:1", b: "m1:1", latencyMs: 2 }
+  - { id: t1m2, a: "t1:2", b: "m2:1", latencyMs: 3 }
+  - { id: t1m3, a: "t1:3", b: "m3:1", latencyMs: 4 }
+  - { id: t1m4, a: "t1:4", b: "m4:1", latencyMs: 5 }
+  - { id: t2m1, a: "t2:1", b: "m1:2", latencyMs: 2 }
+  - { id: t2m2, a: "t2:2", b: "m2:2", latencyMs: 3 }
+  - { id: t2m3, a: "t2:3", b: "m3:2", latencyMs: 4 }
+  - { id: t2m4, a: "t2:4", b: "m4:2", latencyMs: 5 }
+  # middle tier <-> bottom tier
+  - { id: m1b1, a: "m1:3", b: "b1:1", latencyMs: 2 }
+  - { id: m2b1, a: "m2:3", b: "b1:2", latencyMs: 3 }
+  - { id: m3b1, a: "m3:3", b: "b1:3", latencyMs: 4 }
+  - { id: m4b1, a: "m4:3", b: "b1:4", latencyMs: 5 }
+  - { id: m1b2, a: "m1:4", b: "b2:1", latencyMs: 2 }
+  - { id: m2b2, a: "m2:4", b: "b2:2", latencyMs: 3 }
+  - { id: m3b2, a: "m3:4", b: "b2:3", latencyMs: 4 }
+  - { id: m4b2, a: "m4:4", b: "b2:4", latencyMs: 5 }

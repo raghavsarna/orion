@@ -15,9 +15,9 @@ export default function Measure({ ctx, lab, trials, addTrials }) {
   const [busy, setBusy] = useState('')
   const samples = (conv?.samples || []).slice(-12).reverse()
   const max = Math.max(1, ...samples.map((s) => s.totalMs))
-  const fabric = REQUIRED.every((id) => ctx.netTopo?.switches.some((s) => s.id === id))
-  const from = fabric ? 't1' : ctx.ctrlTopo?.hosts?.[0]?.switchId
-  const to = fabric ? '10.0.3.0/24' : ctx.ctrlTopo?.hosts?.find((h) => h.switchId !== from)?.subnet
+  const ring = REQUIRED.every((id) => ctx.netTopo?.switches.some((s) => s.id === id))
+  const from = ring ? 'A' : ctx.ctrlTopo?.hosts?.[0]?.switchId
+  const to = ring ? '10.0.2.0/24' : ctx.ctrlTopo?.hosts?.find((h) => h.switchId !== from)?.subnet
 
   const runTrials = async () => {
     const out = []
