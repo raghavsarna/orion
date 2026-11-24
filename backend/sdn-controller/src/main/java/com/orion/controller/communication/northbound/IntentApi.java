@@ -4,6 +4,7 @@ import com.orion.controller.ControllerException;
 import com.orion.controller.OrionCore;
 import com.orion.controller.intent.Intent;
 import com.orion.controller.intent.IntentSpec;
+import com.orion.controller.intent.LlmTranslator;
 import com.orion.shared.net.Ip;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +20,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Northbound: intents (form / JSON) and IP groups. */
+/** Northbound: intents (form/JSON and natural language) and IP groups. */
 @RestController
 @RequestMapping("/api")
 public class IntentApi {
+
+    public record TranslateRequest(String text) {
+    }
 
     public record GroupRequest(String name, List<String> members) {
     }
@@ -49,6 +53,17 @@ public class IntentApi {
     public Map<String, String> delete(@PathVariable UUID id) {
         core.intentManager().delete(id);
         return Map.of("deleted", id.toString());
+    }
+
+    /** Hindi / Hinglish / English text -> intent JSON for the user to check, then submit with POST /api/intents. */
+    @PostMapping("/intents/translate")
+    public LlmTranslator.Translation translate(@RequestBody TranslateRequest r) {
+        return core.translator().translate(r.text());
+    }
+
+    @GetMapping("/llm")
+    public LlmTranslator.Status llm() {
+        return core.translator().status();
     }
 
     @GetMapping("/groups")

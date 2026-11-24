@@ -1,0 +1,25 @@
+# Which LLM turns plain-language instructions (English, Hindi, Hinglish) into intent JSON.
+# The LLM only fills in the intent; the controller still validates it and generates every flow rule itself.
+# This file is re-read on every translation, so edits apply without a restart.
+#
+# provider: gemini             -> Google Gemini REST API
+#           openai-compatible  -> any API with POST {baseUrl}/chat/completions (e.g. a local model server)
+
+provider: gemini
+model: gemini-3.1-flash-lite     # fast; turning a sentence into an intent is a small structured task
+baseUrl: ""                     # empty = provider default (required for openai-compatible)
+
+# The API key goes in the .env file in the project folder (GEMINI_API_KEY=...), never in this file.
+# docker-compose passes it to the controller as ORION_LLM_API_KEY.
+apiKeyEnv: ORION_LLM_API_KEY
+apiKey: ""
+
+maxTokens: 2048
+timeoutSec: 20                   # per model; then the next fallback is tried
+
+# Tried in order when the model above is busy (503), rate-limited (429), retired (404) or slower than timeoutSec.
+# Busy or rate-limited models get one more try after 1.5 s first.
+fallbacks: gemini-3.5-flash-lite, gemini-2.5-flash-lite, gemini-flash-lite-latest, gemini-3.8-flash, gemini-flash-latest
+
+# System prompt template. {{context}} is replaced with the current links, host subnets and groups.
+promptFile: /config/prompts/intent_prompt.txt

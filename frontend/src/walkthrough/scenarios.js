@@ -1,4 +1,5 @@
 import { sleep } from '../api.js'
+import { summary } from '../panels/Intents.jsx'
 
 /**
  * The demo scenarios, written for someone seeing the system for the first time: one idea each, a few small steps,
@@ -8,6 +9,11 @@ import { sleep } from '../api.js'
 export const REQUIRED = ['A', 'B', 'C', 'D', 'E']
 const TO_B = '10.0.2.0/24'
 const TO_F = '10.0.3.0/24'
+
+/** An intent in plain words; link ids like AE read as A–E. */
+const plain = (i) => (i.type === 'AVOID_LINK'
+  ? `don't use the ${/^[A-Z]{2}$/.test(i.linkId) ? i.linkId[0] + '–' + i.linkId[1] : i.linkId} link`
+  : summary(i))
 
 const route = (r) => (r.route.length ? r.route.join(' → ') : 'nowhere')
 const sendAB = (lab, count = 10) => lab.sendAndSettle({ from: 'A', to: TO_B, flows: 1, count, pps: 10 })
@@ -237,4 +243,51 @@ export const SCENARIOS = [
       },
     ],
   },
+  {
+    id: 'words',
+    title: 'Say it in plain words',
+    blurb: 'An LLM turns a sentence into an instruction.',
+    paper: '§3.1 (our addition)',
+    reset: true,
+    steps: [
+      {
+        say: 'Write the instruction in plain words, in Hindi, Hinglish or English.',
+        input: 'A aur E ke beech wala link use mat karo',
+        button: 'Ask the LLM',
+        focus: { controller: true },
+        run: async (lab, ui) => {
+          const r = await lab.translate(ui.input)
+          words.intent = r.intent
+          return `Gemini turned it into: "${plain(r.intent)}". The controller checked it, but has not applied it yet.`
+        },
+      },
+      {
+        say: 'Apply it and send packets from A to B.',
+        button: 'Apply and send',
+        focus: { switches: ['A', 'B'] },
+        run: async (lab) => {
+          if (!words.intent) return 'Go back one step and ask the LLM first.'
+          const i = await lab.addIntent(words.intent)
+          await sleep(500)
+          const r = await sendAB(lab)
+          return `The instruction is ${i?.status === 'ACTIVE' ? 'in force' : (i?.status || '').toLowerCase()}. Packets went ${route(r)}.`
+        },
+      },
+      {
+        say: 'Remove it again.',
+        button: 'Remove and send',
+        focus: { switches: ['A', 'B'] },
+        run: async (lab) => {
+          await lab.clearIntents()
+          words.intent = null
+          await sleep(600)
+          const r = await sendAB(lab)
+          return `Back to the short route: ${route(r)}. The LLM only wrote the instruction; the controller did the rest.`
+        },
+      },
+    ],
+  },
 ]
+
+/** What the LLM produced in step 1 of "Say it in plain words", used by step 2. */
+const words = { intent: null }

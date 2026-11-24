@@ -10,10 +10,11 @@ import java.time.ZoneId;
  * @param maxMissedProbes    missed probes in a row before a switch is marked DEAD
  * @param safetyCheckSec     how often the Intent Manager re-reads topology and switch rules to fix drift
  * @param dbUrl              JDBC URL of PostgreSQL
+ * @param llmConfigFile      path to llm.yaml
  * @param zone               time zone for intent time windows
  * @param failStaticThreshold capacity degradation above which the controller fails static (0..1)
  */
 public record ControllerSettings(String authToken, int probeIntervalSec, int maxMissedProbes, int safetyCheckSec,
-                                 String dbUrl, String dbUser, String dbPassword,
+                                 String dbUrl, String dbUser, String dbPassword, String llmConfigFile,
                                  ZoneId zone, double failStaticThreshold) {
 }

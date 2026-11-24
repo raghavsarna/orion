@@ -5,6 +5,7 @@ import com.orion.controller.flowrules.FlowPusher;
 import com.orion.controller.flowrules.PacketInHandler;
 import com.orion.controller.flowrules.RuleGenerator;
 import com.orion.controller.intent.IntentManager;
+import com.orion.controller.intent.LlmTranslator;
 import com.orion.controller.storage.Database;
 import com.orion.controller.storage.GroupRepository;
 import com.orion.controller.storage.IntentRepository;
@@ -46,6 +47,7 @@ public final class OrionCore {
     private final FlowPusher flowPusher;
     private final IntentManager intentManager;
     private final PacketInHandler packetInHandler;
+    private final LlmTranslator translator;
     private Thread startup;
 
     public OrionCore(ControllerSettings settings) {
@@ -62,6 +64,7 @@ public final class OrionCore {
         this.intentManager = new IntentManager(intentRepo, groupRepo, nib, new RuleGenerator(), flowPusher, settings,
                 activity);
         this.packetInHandler = new PacketInHandler(nib, intentManager, switchClient, activity, settings.zone());
+        this.translator = new LlmTranslator(settings.llmConfigFile(), nib, groupRepo);
     }
 
     public void start() {
@@ -139,6 +142,10 @@ public final class OrionCore {
 
     public PacketInHandler packetInHandler() {
         return packetInHandler;
+    }
+
+    public LlmTranslator translator() {
+        return translator;
     }
 
     public GroupRepository groups() {

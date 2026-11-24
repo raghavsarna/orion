@@ -5,6 +5,7 @@ name: orion
 # Stop it:                  docker compose down
 #
 # Host ports can be changed with env vars, e.g.  UI_PORT=3100 docker compose up --build
+# Plain-language intents (LLM): put your Gemini API key in the .env file next to this one (see .env.example).
 
 x-common-env: &common-env
   ORION_TIMEZONE: ${ORION_TIMEZONE:-Asia/Kolkata}
@@ -40,6 +41,8 @@ services:
       DB_USER: orion
       DB_PASSWORD: orion
       ORION_AUTH_TOKEN: orion-secret-token
+      LLM_CONFIG: /config/llm.yaml
+      ORION_LLM_API_KEY: ${GEMINI_API_KEY:-}
     volumes:
       - ./config:/config:ro
     ports:

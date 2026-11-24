@@ -33,6 +33,18 @@ starts an 8-switch fabric shaped like Figure 1 of the paper, and `ORION_TOPOLOGY
 
 Edit a topology file, then `docker compose restart switch-network` to load it.
 
+### Plain-language intents with an LLM (optional)
+
+Put your Gemini API key in the `.env` file in the project folder (copy `.env.example` if `.env` is missing):
+
+```
+GEMINI_API_KEY=your-key-here
+```
+
+then start as usual with `docker compose up --build`. Get a key at https://aistudio.google.com/apikey. The `.env` file is git-ignored, so the key is never committed.
+
+Type an instruction such as "A aur E ke beech wala link use mat karo" in the Intents tab, or run scenario 7. Gemini turns the sentence into an intent; the controller validates it and generates every flow rule itself. The provider and model are set in [config/llm.yaml](config/llm.yaml). `provider: openai-compatible` with a `baseUrl` works with any `/chat/completions` API, including local model servers.
+
 ## What from the paper is implemented
 
 | Paper | This implementation | Code |
@@ -81,7 +93,7 @@ Docker Desktop on macOS oversleeps timers by up to about 100 ms, so wall-clock p
 
 ```
 docker-compose.yml        runs everything (plus the system-test and benchmark profiles)
-config/                   topology.yaml (5-switch ring), topology-fabric.yaml, topology-triangle.yaml
+config/                   topology.yaml (5-switch ring), topology-fabric.yaml, topology-triangle.yaml, llm.yaml, prompts/
 docs/                     ORION_DESIGN.md, IMPLEMENTATION_PLAN.md, DEMO.md
 backend/                  Java 21, Maven
   shared/                 packet, flow rule (match, action incl. ECMP), switch-controller messages

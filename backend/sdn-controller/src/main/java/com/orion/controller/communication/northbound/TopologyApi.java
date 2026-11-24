@@ -3,6 +3,7 @@ package com.orion.controller.communication.northbound;
 import com.orion.controller.ActivityLog;
 import com.orion.controller.ControllerException;
 import com.orion.controller.OrionCore;
+import com.orion.controller.intent.LlmTranslator;
 import com.orion.controller.topology.LinkInfo;
 import com.orion.controller.topology.NibSnapshot;
 import com.orion.controller.topology.SwitchView;
@@ -42,7 +43,8 @@ public class TopologyApi {
     public record FlowsView(String switchId, List<FlowRule> desired, List<FlowRule> installed) {
     }
 
-    public record Status(boolean databaseReady, long topologyVersion, int switches, List<String> subscribers) {
+    public record Status(boolean databaseReady, long topologyVersion, int switches, List<String> subscribers,
+                         LlmTranslator.Status llm) {
     }
 
     private final OrionCore core;
@@ -136,6 +138,6 @@ public class TopologyApi {
     public Status status() {
         NibSnapshot snap = core.nib().snapshot();
         return new Status(core.database().isReady(), snap.version(), snap.switches().size(),
-                core.nib().subscriberNames());
+                core.nib().subscriberNames(), core.translator().status());
     }
 }

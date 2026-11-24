@@ -36,6 +36,8 @@ simulator, and each one maps to a named section of the paper.
   3-switch triangle (system test).
 - Intents: AVOID_LINK, MAX_LATENCY, BLOCK_TRAFFIC, BLOCK_PROTOCOL, ISOLATE_GROUPS, RATE_LIMIT, optional time windows;
   NOT_POSSIBLE with a reason when the network cannot satisfy one.
+- Plain-language (English, Hindi, Hinglish) intents through Google Gemini, when a key is in .env. The LLM only
+  fills in an intent; the controller validates it and generates the rules. Shown in the demo as scenario 7.
 - Simulated link latency is reported as path latency (sum of configured link latencies); wall-clock timing on Docker
   Desktop for Mac carries tens of ms of timer jitter.
 - Paper vocabulary is authoritative: NIB, intent, Topology Manager, Flow Manager / reconciliation, Routing Engine,

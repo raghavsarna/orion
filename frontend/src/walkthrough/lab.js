@@ -89,6 +89,9 @@ export function makeLab(getTopo) {
     topo: getTopo,
     waitSwitch,
 
+    /** Ask the LLM to turn plain words into an intent (nothing is applied). */
+    translate: (text) => ctrl('/api/intents/translate', { method: 'POST', body: { text } }),
+
     /** Delete the rule a switch uses for a destination subnet. Returns the rule, or null if there was none. */
     deleteRuleFor: async (switchId, subnet) => {
       const table = await net(`/switch/${switchId}/flow`)

@@ -75,6 +75,13 @@ docker compose up --build
 | 28 | Time-bound intents | Rules carry a time window; expired intents are removed | Intent active only in its window; marked `EXPIRED` afterwards |
 | 29 | Recovery | Restart each container separately; the system heals | Restart controller, then switch-network, then postgres: traffic and intents are back each time |
 
+## Phase D — Natural language (Hindi)
+
+| # | Piece | Objective | How you verify |
+|---|---|---|---|
+| 30 | LLM client | `llm.yaml` config + clients for Google Gemini and OpenAI-compatible APIs | With your key set, a test call returns a reply |
+| 31 | Translate endpoint | `POST /api/intents/translate`: Hindi/English text → validated intent JSON | "guest network se SSH block karo" → correct `BLOCK_PROTOCOL` JSON |
+
 ## Phase E — Finish
 
 | # | Piece | Objective | How you verify |

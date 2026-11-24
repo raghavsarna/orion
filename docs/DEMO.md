@@ -1,6 +1,6 @@
 # Demo script
 
-The live part of the talk: six short scenarios, about 7 minutes in total. Each scenario is a few steps. Press the blue button, watch the network change, then read the one-line result.
+The live part of the talk: seven short scenarios, about 8 minutes in total. Each scenario is a few steps. Press the blue button, watch the network change, then read the one-line result.
 
 ## Before the talk
 
@@ -55,6 +55,14 @@ This is the paper's Fail Static idea.
 1. **Delete the rule.** E forgets where to send packets for B.
 2. **Send one packet.** E has no rule, so it sends the packet to the controller; the line from E to the controller turns blue. The controller tells E where to send it and gives E the rule back.
 3. **Send another packet.** It goes straight through. E did not need to ask.
+
+## 7. Say it in plain words (about 1 minute, needs the Gemini key)
+
+1. **Ask the LLM.** The box holds "A aur E ke beech wala link use mat karo" (Hinglish for "don't use the link between A and E"); you can type your own. Gemini turns it into an instruction, shown in plain words. Say: "The LLM only writes the instruction. It never touches the switches."
+2. **Apply and send.** Packets take the long route A → C → D → B.
+3. **Remove and send.** Back to A → E → B.
+
+This is our addition, not part of the Orion paper.
 
 ## Optional extras
 
