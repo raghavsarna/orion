@@ -384,4 +384,3 @@ legend { font-size: 0.82rem; font-weight: 600; color: var(--ink-2); padding: 0; 
 .stage .result .ok { color: var(--blue); vertical-align: -0.2em; }
 .stage .tick { margin-top: 0.9rem; }
 .btn.big { font-size: 1.05rem; padding: 0.8em 1.2em; }
-.say-input { width: 100%; max-width: 34rem; font: 400 1.1rem var(--serif); padding: 0.6em 0.7em; margin: -0.4rem 0 1.1rem; }

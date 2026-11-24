@@ -35,7 +35,6 @@ export function caption({ netTopo, ctrlTopo, failMode, traffic, now }) {
     say(`The controller lost contact with ${list(failMode.unknown)}. Going around all of them would ${failMode.disconnects ? 'cut hosts off' : 'remove too much of the network'}, so it keeps the routes it already had (Fail Static).`)
   }
 
-  if (!parts.length) say(`The controller knows ${ctrlTopo.switches.length} switches and ${ctrlTopo.links.length} links.`)
   return parts
 }
 

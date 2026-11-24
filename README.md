@@ -14,7 +14,7 @@ Then open http://localhost:3000. The presenter's script is in [docs/DEMO.md](doc
 
 | Service | URL | What it is |
 |---|---|---|
-| UI | http://localhost:3000 | the live network with its controller, step-by-step scenarios, intents, inspect, measure, log |
+| UI | http://localhost:3000 | the live network with its controller, step-by-step scenarios, intents, inspect, log |
 | Controller | http://localhost:8181 | Topology Manager (NIB), Intent Manager, southbound and northbound APIs |
 | Switch network | http://localhost:9191 | one container, one thread per switch |
 | PostgreSQL | localhost:5433 | db, user and password are all `orion` |
@@ -43,7 +43,7 @@ GEMINI_API_KEY=your-key-here
 
 then start as usual with `docker compose up --build`. Get a key at https://aistudio.google.com/apikey. The `.env` file is git-ignored, so the key is never committed.
 
-Type an instruction such as "A aur E ke beech wala link use mat karo" in the Intents tab, or run scenario 7. Gemini turns the sentence into an intent; the controller validates it and generates every flow rule itself. The provider and model are set in [config/llm.yaml](config/llm.yaml). `provider: openai-compatible` with a `baseUrl` works with any `/chat/completions` API, including local model servers.
+Type an instruction such as "A aur E ke beech wala link use mat karo" in the box at the top of the Intents tab (click New intent). Gemini turns the sentence into an intent; the controller validates it and generates every flow rule itself. The provider and model are set in [config/llm.yaml](config/llm.yaml). `provider: openai-compatible` with a `baseUrl` works with any `/chat/completions` API, including local model servers.
 
 ## What from the paper is implemented
 
@@ -104,7 +104,7 @@ backend/                  Java 21, Maven
 frontend/src/             React (Vite), served by nginx, which proxies /ctrl and /net
   figure/                 the live network drawing, its caption, the controller's map as a table
   walkthrough/            the demo scenarios and the actions they run
-  panels/                 Intents, Inspect, Measure, Log
+  panels/                 Intents, Inspect, Log (Measure is kept in the code but hidden)
 ```
 
 Spring is used only for the REST endpoints and the two bootstrap classes. All controller logic is plain Java. See [docs/ORION_DESIGN.md](docs/ORION_DESIGN.md) for the original design.

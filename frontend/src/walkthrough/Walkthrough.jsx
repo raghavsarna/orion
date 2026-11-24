@@ -12,7 +12,6 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, toast }) {
   const [result, setResult] = useState(null)   // { text, error } for the current step, once run
   const [busy, setBusy] = useState(false)
   const [tick, setTick] = useState('')
-  const [input, setInput] = useState('')
   const idx = SCENARIOS.findIndex((s) => s.id === openId)
   const scenario = SCENARIOS[idx]
   const missing = netTopo ? REQUIRED.filter((id) => !netTopo.switches.some((s) => s.id === id)) : []
@@ -26,7 +25,6 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, toast }) {
     setOpenId(id)
     setStep(0)
     setResult(null)
-    setInput(SCENARIOS.find((x) => x.id === id)?.steps[0]?.input || '')
   }
 
   const run = async () => {
@@ -39,7 +37,7 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, toast }) {
         await lab.reset()
         setTick('')
       }
-      setResult({ text: await s.run(lab, { tick: setTick, input }) })
+      setResult({ text: await s.run(lab, { tick: setTick }) })
     } catch (e) {
       setResult({ text: e.message, error: true })
     } finally {
@@ -51,7 +49,6 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, toast }) {
   const next = () => {
     setStep(step + 1)
     setResult(null)
-    setInput(scenario.steps[step + 1]?.input || '')
   }
 
   const restore = async () => {
@@ -108,10 +105,6 @@ export default function Walkthrough({ lab, netTopo, onScene, onFocus, toast }) {
 
       <div className="stage" key={`${openId}-${step}`}>
         <p className="say">{s.say}</p>
-        {s.input !== undefined && (
-          <input className="say-input" value={input} onChange={(e) => setInput(e.target.value)} disabled={busy || !!result}
-                 aria-label="Instruction in plain words" />
-        )}
         {!result && (
           <button className="btn primary big" onClick={run} disabled={busy || missing.length > 0}>
             {busy ? <LoaderCircle size={18} className="spin" /> : <Play size={18} />} {busy ? 'Working…' : s.button}

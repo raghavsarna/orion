@@ -1,6 +1,6 @@
 # Demo script
 
-The live part of the talk: seven short scenarios, about 8 minutes in total. Each scenario is a few steps. Press the blue button, watch the network change, then read the one-line result.
+The live part of the talk: six short scenarios, about 7 minutes in total. Each scenario is a few steps. Press the blue button, watch the network change, then read the one-line result.
 
 ## Before the talk
 
@@ -56,18 +56,10 @@ This is the paper's Fail Static idea.
 2. **Send one packet.** E has no rule, so it sends the packet to the controller; the line from E to the controller turns blue. The controller tells E where to send it and gives E the rule back.
 3. **Send another packet.** It goes straight through. E did not need to ask.
 
-## 7. Say it in plain words (about 1 minute, needs the Gemini key)
-
-1. **Ask the LLM.** The box holds "A aur E ke beech wala link use mat karo" (Hinglish for "don't use the link between A and E"); you can type your own. Gemini turns it into an instruction, shown in plain words. Say: "The LLM only writes the instruction. It never touches the switches."
-2. **Apply and send.** Packets take the long route A → C → D → B.
-3. **Remove and send.** Back to A → E → B.
-
-This is our addition, not part of the Orion paper.
-
 ## Optional extras
 
 - **The Intents tab** lists the instructions given to the controller and lets you write your own, for example "from 10.0.1.0/24 block SSH".
-- **The Measure tab** times how long the controller takes to react to a cut link, as in the paper's evaluation.
+- **Plain words (needs the Gemini key and internet).** In the Intents tab, click New intent, type "A aur E ke beech wala link use mat karo" in the box at the top, and press Translate. Gemini fills in the form (Avoid link, AE). Check it and save. The LLM only writes the instruction; the controller still makes every rule. This is our addition, not part of the Orion paper.
 - **The paper's own Figure 1** can be shown with `ORION_TOPOLOGY=topology-fabric.yaml docker compose up --build`. The scenarios need the default ring, though.
 
 ## Command-line evidence for the slides

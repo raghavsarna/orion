@@ -1,27 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ctrl, net, usePacketLog, usePoll } from './api.js'
 import Figure from './figure/Figure.jsx'
-import Matrix from './figure/Matrix.jsx'
 import { caption } from './figure/caption.js'
 import { summarise } from './figure/traffic.js'
 import Walkthrough from './walkthrough/Walkthrough.jsx'
 import { makeLab } from './walkthrough/lab.js'
 import Intents from './panels/Intents.jsx'
 import Inspect from './panels/Inspect.jsx'
-import Measure from './panels/Measure.jsx'
 import Log from './panels/Log.jsx'
 
 const TABS = [
   { id: 'walk', title: 'Scenarios', section: 'A live demo of the Orion paper' },
   { id: 'intents', title: 'Intents', section: '§3.1 Intent-based management' },
   { id: 'inspect', title: 'Inspect', section: '§4.1 Orion Core' },
-  { id: 'measure', title: 'Measure', section: '§6 Evaluation' },
   { id: 'log', title: 'Log', section: '§4.1 The NIB' },
 ]
 
 export default function App() {
   const [netTopo, netErr, refreshNet] = usePoll(() => net('/network/topology'), 1200)
-  const [ctrlTopo, ctrlErr, refreshCtrl] = usePoll(() => ctrl('/api/topology'), 1200)
+  const [ctrlTopo, , refreshCtrl] = usePoll(() => ctrl('/api/topology'), 1200)
   const [status] = usePoll(() => ctrl('/api/status'), 4000)
   const [fail] = usePoll(() => ctrl('/api/fail-mode'), 1500)
   const [paused, setPaused] = useState(false)
@@ -30,8 +27,6 @@ export default function App() {
   const [tab, setTab] = useState('walk')
   const [scene, setScene] = useState(null)
   const [focus, setFocus] = useState({})
-  const [matrix, setMatrix] = useState(false)
-  const [trials, setTrials] = useState([])
   const [toasts, setToasts] = useState([])
   const [now, setNow] = useState(Date.now())
 
@@ -70,24 +65,11 @@ export default function App() {
   const failMode = fail?.failMode
   const lines = caption({ netTopo, ctrlTopo, failMode, traffic, now })
   const ctx = { netTopo, ctrlTopo, status, act, toast, log }
-  const live = failMode?.mode === 'FAIL_STATIC' ? '§3.2 Fail Static' : failMode?.mode === 'FAIL_CLOSED' ? '§3.2 Fail Closed' : null
-  const guide = scene && tab === 'walk' ? `${scene.title} (paper ${scene.section})` : live || TABS.find((t) => t.id === tab).section
 
   return (
     <div className="app">
       <header className="head">
         <h1>Orion</h1>
-        <p className="guide" aria-label="Paper section">{guide}</p>
-        <dl className="state">
-          <Health ok={!ctrlErr && ctrlTopo} label="controller" />
-          <Health ok={!netErr && netTopo} label="switches" />
-          <Health ok={status?.databaseReady} label="database" />
-          <div><dt>map</dt><dd className="num">v{ctrlTopo?.version ?? '–'}</dd></div>
-          <div className={failMode && failMode.mode !== 'NORMAL' ? 'alert' : ''}>
-            <dt>lost contact</dt>
-            <dd>{!failMode ? '–' : failMode.mode === 'NORMAL' ? 'none' : `${failMode.unknown.join(', ')} (${failMode.mode === 'FAIL_STATIC' ? 'Fail Static' : 'Fail Closed'})`}</dd>
-          </div>
-        </dl>
       </header>
 
       <main>
@@ -99,20 +81,11 @@ export default function App() {
               <div className="placeholder">{netErr ? 'The switch network is not answering. Is docker compose up running?' : 'Loading the network…'}</div>
             )}
             <figcaption>
-              <b>Figure 1:</b> <i>The network, live.</i>{' '}
               <span className="scroll-hint">Scroll the figure sideways. </span>
               {lines.map((p) => <span key={p.key} className="cap-part">{p.text} </span>)}
             </figcaption>
             <Key />
           </figure>
-          {matrix && ctrlTopo && (
-            <figure className="fig2">
-              <Matrix ctrlTopo={ctrlTopo} />
-              <figcaption><b>Figure 2:</b> <i>The controller's map as a table.</i> One row and one column per switch; a cell names the link between them. Version {ctrlTopo.version}.
-                {' '}<button className="link-btn" onClick={() => setMatrix(false)}>Hide</button></figcaption>
-            </figure>
-          )}
-          {!matrix && ctrlTopo && <button className="link-btn show-matrix" onClick={() => setMatrix(true)}>Show the controller's map as a table (Figure 2)</button>}
         </section>
 
         <aside className="side">
@@ -128,9 +101,6 @@ export default function App() {
           </div>
           <div className="pane" hidden={tab !== 'intents'}><Intents ctx={ctx} /></div>
           <div className="pane" hidden={tab !== 'inspect'}><Inspect ctx={ctx} selected={selected} onSelect={select} /></div>
-          <div className="pane" hidden={tab !== 'measure'}>
-            <Measure ctx={ctx} lab={lab} trials={trials} addTrials={(t) => setTrials((x) => [...x, ...t])} />
-          </div>
           <div className="pane" hidden={tab !== 'log'}><Log log={log} paused={paused} setPaused={setPaused} /></div>
         </aside>
       </main>
@@ -138,15 +108,6 @@ export default function App() {
       <div className="toasts" role="status" aria-live="polite">
         {toasts.map((t) => <p key={t.id} className={'toast ' + t.kind}>{t.text}</p>)}
       </div>
-    </div>
-  )
-}
-
-function Health({ ok, label }) {
-  return (
-    <div className={ok ? '' : 'alert'}>
-      <dt>{label}</dt>
-      <dd>{ok ? 'up' : 'down'}</dd>
     </div>
   )
 }
